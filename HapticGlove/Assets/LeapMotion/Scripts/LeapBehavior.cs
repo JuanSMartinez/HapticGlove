@@ -23,6 +23,7 @@ public class LeapBehavior : MonoBehaviour {
 					(transform.localScale.y * .5f + .02f);
 				transform.rotation = hand.Basis.rotation.ToQuaternion();
 
+
 			}
 
 		}
