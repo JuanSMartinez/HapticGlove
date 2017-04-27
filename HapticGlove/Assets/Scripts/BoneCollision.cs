@@ -1,8 +1,14 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using AssemblyCSharp;
+using Leap.Unity.Interaction;
+using Leap.Unity;
+using Leap;
 
 public class BoneCollision : MonoBehaviour {
+	
+
 
 	// Use this for initialization
 	void Start () {
@@ -11,11 +17,11 @@ public class BoneCollision : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		Debug.DrawLine (transform.position, transform.position + GetComponent<Rigidbody>().velocity, Color.blue, 0.5f,false);
+		
 	}
 
-	void OnCollisionEnter(Collision collision){
-		Debug.DrawLine (collision.contacts [0].point, collision.contacts [0].point + collision.contacts [0].normal, Color.red, 2f,false);
-		Debug.Log ("Collision angle: " + Vector3.Angle(GetComponent<Rigidbody>().velocity, -collision.contacts[0].normal));
+	void OnCollisionStay(Collision collision){
+		Debug.Log ("Collision: " + collision.transform.name);
+		//Debug.Log("Collision energy: " + PhysicsCalculator.GetKineticEnergyOfCollision(collision.rigidbody, GetComponent<Rigidbody>()) + " Friction: " + PhysicsCalculator.GetFrictionForceOfCollision(-collision.contacts[0].normal, GetComponent<Rigidbody>(), GetComponent<Collider>().material));
 	}
 }
