@@ -17,10 +17,20 @@ public class PalmManager : MonoBehaviour {
 		provider = FindObjectOfType<LeapProvider>();
 		leftPalmSphere = GameObject.CreatePrimitive (PrimitiveType.Sphere);
 		rightPalmSphere = GameObject.CreatePrimitive (PrimitiveType.Sphere);
+		leftPalmSphere.name = "LeftPalm";
+		rightPalmSphere.name = "RightPalm";
 		leftPalmSphere.GetComponent<MeshRenderer> ().enabled = false;
 		rightPalmSphere.GetComponent<MeshRenderer> ().enabled = false;
 		rightPalmSphere.transform.localScale = new Vector3 (0.001f, 0.001f, 0.001f);
 		leftPalmSphere.transform.localScale = new Vector3 (0.001f, 0.001f, 0.001f);
+		leftPalmSphere.AddComponent<Rigidbody> ();
+		rightPalmSphere.AddComponent<Rigidbody> ();
+		leftPalmSphere.GetComponent<Rigidbody> ().useGravity = false;
+		leftPalmSphere.GetComponent<Rigidbody> ().mass = 0.4f;
+		leftPalmSphere.GetComponent<Rigidbody> ().collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
+		rightPalmSphere.GetComponent<Rigidbody> ().useGravity = false;
+		rightPalmSphere.GetComponent<Rigidbody> ().mass = 0.4f;
+		rightPalmSphere.GetComponent<Rigidbody> ().collisionDetectionMode = CollisionDetectionMode.ContinuousDynamic;
 	}
 	
 	// Update is called once per frame
