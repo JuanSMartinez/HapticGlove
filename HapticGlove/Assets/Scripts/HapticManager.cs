@@ -16,6 +16,9 @@ public class HapticManager : MonoBehaviour {
 
 	//Leap provider
 	LeapProvider provider;
+
+	//Serial Manager
+	public SerialManager serialManager;
 	
 	// Use this for initialization
 	void Start () {
@@ -30,7 +33,7 @@ public class HapticManager : MonoBehaviour {
 				//Get the bones for the haptic glove used
 				List<InteractionBrushBone> bones = FilterBones ();
 				//Compute haptic values for vibration
-			GetHapticValues (bones, hand.PalmNormal.ToVector3());
+				GetHapticValues (bones, hand.PalmNormal.ToVector3());
 		}
 
 	}
@@ -68,10 +71,14 @@ public class HapticManager : MonoBehaviour {
 		RaycastHit hitPalm;
 		if (Physics.Raycast (collisionRayPalm, out hitPalm, rayDistance)) {
 			if (hitPalm.collider.CompareTag ("HapticObj")) {
+				serialManager.Write ("ON");
 				float energy = PhysicsCalculator.GetKineticEnergyOfCollision (palm.transform.GetComponent<Rigidbody> (), hitPalm.transform.GetComponent<Rigidbody> ());
 				float friction = PhysicsCalculator.GetFrictionForceOfCollision (hitPalm.normal, hitPalm.transform.GetComponent<Rigidbody> (), hitPalm.collider.material);
 				Debug.Log ("Hit info for bone " + palm.name + ": Energy: " + energy + ". Friction: " + friction);
 			}
+
 		}
+		else
+			serialManager.Write ("OFF");
 	}
 }
