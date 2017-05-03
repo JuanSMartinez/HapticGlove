@@ -44,8 +44,9 @@ public class HapticManager : MonoBehaviour {
 			//Compute haptic values for vibration and serial data
 			string serialData = GetHapticValues (bones, hand.PalmNormal.ToVector3());
 			//Send data through serial port
-			//serialManager.Write(serialData);
-			Debug.Log(serialData);
+			serialManager.Write(serialData);
+			//Debug.Log(serialData);
+	
 		}
 
 	}
@@ -120,12 +121,12 @@ public class HapticManager : MonoBehaviour {
 		float normalizedFriction = Mathf.Min (averageFriction, maxMass * 9.8f) / maxMass * 9.8f;
 
 		//percentage of the maximum current
-		string serialPercentage = "" + ( 0.5f * normalizedEnergy + 0.5f * normalizedFriction);
+		float serialPercentage = ( 0.5f * normalizedEnergy + 0.5f * normalizedFriction);
 
 		if (controlWord.Equals ("00000000000"))
 			return "NA";
 		else
-			return serialPercentage + ":" + controlWord;
+			return "" + Mathf.Round(serialPercentage * 100f) / 100f + ":" + controlWord;
 
 	}
 
@@ -141,5 +142,4 @@ public class HapticManager : MonoBehaviour {
 		}
 		return control;
 	}
-		
 }
