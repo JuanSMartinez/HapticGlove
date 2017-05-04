@@ -21,7 +21,7 @@ public class HapticManager : MonoBehaviour {
 	public SerialManager serialManager;
 
 	//Array of finger suffixes in the haptic glove
-	private string[] suffixes = {"0_0", "0_2","1_0", "1_2","2_0", "2_2","3_0", "3_2","4_0", "4_2"};
+	private string[] suffixes = {"0_2","1_0", "1_2","2_0", "2_2","3_0", "3_2","4_0", "4_2"};
 
 	//Maximum weight to manipulate in the application in Kg
 	public float maxMass = 10f;
@@ -45,7 +45,8 @@ public class HapticManager : MonoBehaviour {
 			string serialData = GetHapticValues (bones, hand.PalmNormal.ToVector3());
 			//Send data through serial port
 			serialManager.Write(serialData);
-			//Debug.Log(serialData);
+			//Debug.Log (serialManager.Read ());
+			Debug.Log(serialData);
 	
 		}
 
@@ -113,20 +114,17 @@ public class HapticManager : MonoBehaviour {
 		}
 
 		//Calculate average energy and friction
-		float averageEnergy = totalEnergy / 11f;
-		float averageFriction = totalFriction / 11f;
+		float averageEnergy = totalEnergy / 10f;
+		float averageFriction = totalFriction / 10f;
 
 		//Normalize energy and friction in terms of the maximum kinetic energy and maximum weight 
-		float normalizedEnergy = Mathf.Min(averageEnergy, 0.5f*maxMass*maxVelocity*maxVelocity)/ 0.5f*maxMass*maxVelocity*maxVelocity;
-		float normalizedFriction = Mathf.Min (averageFriction, maxMass * 9.8f) / maxMass * 9.8f;
+		float normalizedEnergy = Mathf.Min(averageEnergy, 0.5f*maxMass*maxVelocity*maxVelocity)/ (0.5f*maxMass*maxVelocity*maxVelocity);
+		float normalizedFriction = Mathf.Min (averageFriction, maxMass * 9.8f) / (maxMass * 9.8f);
 
 		//percentage of the maximum current
 		float serialPercentage = ( 0.5f * normalizedEnergy + 0.5f * normalizedFriction);
 
-		if (controlWord.Equals ("00000000000"))
-			return "NA";
-		else
-			return "" + Mathf.Round(serialPercentage * 100f) / 100f + ":" + controlWord;
+		return "S" + serialPercentage.ToString ("0.00") + ":" + controlWord;
 
 	}
 

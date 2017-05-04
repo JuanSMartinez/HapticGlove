@@ -1,4 +1,4 @@
 sceneSetups:
-- path: Assets/Scenes/TestSceneInteraction.unity
+- path: Assets/Scenes/ComLEDTest.unity
   isLoaded: 1
   isActive: 1

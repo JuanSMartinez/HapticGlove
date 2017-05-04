@@ -34,7 +34,7 @@ public class SerialManager : MonoBehaviour {
 	// Update is called once per frame
 	void Update () {
 		if(readingEnabled)
-			StartCoroutine (AsynchronousReadFromSerial((string s)=>ReadCallback(s), ()=> Debug.Log("Time out"), 10f));
+			StartCoroutine (AsynchronousReadFromSerial((string s)=>ReadCallback(s), ()=> Debug.Log("Time out"), 100f));
 	}
 
 	//Start connection
@@ -44,6 +44,7 @@ public class SerialManager : MonoBehaviour {
 
 	//Write a line to the serial buffer
 	public void Write(string message){
+		
 		port.WriteLine (message);
 		port.BaseStream.Flush ();
 	}

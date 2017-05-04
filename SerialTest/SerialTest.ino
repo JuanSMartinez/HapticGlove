@@ -1,40 +1,65 @@
 #include <SoftwareSerial.h>
 
+
 //Message
 String incomingMessage = "";
 
 //Output led for debugging
 int outPin = 9;
 
-
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
+  Serial.setTimeout(100);
   pinMode(outPin, OUTPUT);
   digitalWrite(outPin, HIGH);
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
-  readSerialLine();
 
-  gloveHandler();
+  readSerialLine();
+  //Serial.println(incomingMessage);
+  //processHello();
+  //read2Bytes();
+  processSerialLine();
+
   incomingMessage = "";
 }
 
+
+void read2Bytes(){
+  if(Serial.available()>0){
+    while(Serial.available() < 2) ;
+    char byteA = Serial.read();
+    char byteB = Serial.read();
+    String m = "";
+    m.concat(byteA);
+    m.concat(byteB);
+    if(m == "AB"){
+    digitalWrite(outPin, LOW);
+  }
+  else
+    digitalWrite(outPin, HIGH);
+  }
+}
+
+void processHello(){
+  if(incomingMessage == "hola"){
+    digitalWrite(outPin, LOW);
+  }
+  else
+    digitalWrite(outPin, HIGH);
+}
+
+
 void readSerialLine(){
-  if(Serial.available() >0){
-    while(Serial.available() < 16) ;
+  if(Serial.available() > 0){
+    while(Serial.available() < 17) ;
     char byteReceived = Serial.read();
     //Look for starting character
-    char i = 0;
-    while(byteReceived != 'S' && i < 16){
+    while(byteReceived != 'S')
       byteReceived = Serial.read();
-      i ++;
-    }
-    //Starting character not found, message incomplete
-    if(i == 15)
-      return;
   
     //Start storing message
     byteReceived = Serial.read();
@@ -45,26 +70,19 @@ void readSerialLine(){
   }
 }
 
-
-
-void gloveHandler(){
-  if(incomingMessage != ""){
+void processSerialLine(){
+  if(incomingMessage != "NA" && incomingMessage != ""){
     String percentage = getValue(incomingMessage, ':', 0);
     String controlWord = getValue(incomingMessage, ':', 1);
-    
     //Palm signal
-    char palm = controlWord.charAt(9);
-    if (palm == '1')
-      digitalWrite(outPin,LOW);
-    else
-      digitalWrite(outPin,HIGH);
+    char palm = controlWord.charAt(10);
+    if(palm == '0')
+      digitalWrite(outPin, HIGH);
+    else if (palm == '1')
+      digitalWrite(outPin, LOW);
   }
   else
-    digitalWrite(outPin,HIGH);
-
-  
- 
-
+    digitalWrite(outPin, HIGH);
 }
 
 String getValue(String data, char separator, int index)
@@ -83,4 +101,5 @@ String getValue(String data, char separator, int index)
 
   return found>index ? data.substring(strIndex[0], strIndex[1]) : "";
 }
+
 
