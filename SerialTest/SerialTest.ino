@@ -4,8 +4,21 @@
 //Message
 String incomingMessage = "";
 
-//Output led for debugging
-int outPin = 9;
+//Amount of actuators
+int motors = 10;
+
+//U/D' control of digital potentiometer
+int UD = 12;
+
+//INC control of digital potentiometer
+int INC = 13;
+
+//Linear regression variables for supply control( Is = m*Vpot + b
+float m = 32.555248527564;
+float b = 19.580882300717;
+
+//ADC input for digital potentiometer voltage
+int Vpot = A0;
 
 void setup() {
   // put your setup code here, to run once:
@@ -19,9 +32,6 @@ void loop() {
   // put your main code here, to run repeatedly:
 
   readSerialLine();
-  //Serial.println(incomingMessage);
-  //processHello();
-  //read2Bytes();
   processSerialLine();
 
   incomingMessage = "";
@@ -42,14 +52,6 @@ void read2Bytes(){
   else
     digitalWrite(outPin, HIGH);
   }
-}
-
-void processHello(){
-  if(incomingMessage == "hola"){
-    digitalWrite(outPin, LOW);
-  }
-  else
-    digitalWrite(outPin, HIGH);
 }
 
 
