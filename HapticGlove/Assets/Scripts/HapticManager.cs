@@ -121,8 +121,8 @@ public class HapticManager : MonoBehaviour {
 		float normalizedEnergy = Mathf.Min(averageEnergy, 0.5f*maxMass*maxVelocity*maxVelocity)/ (0.5f*maxMass*maxVelocity*maxVelocity);
 		float normalizedFriction = Mathf.Min (averageFriction, maxMass * 9.8f) / (maxMass * 9.8f);
 
-		//percentage of the maximum current
-		float serialPercentage = ( 0.5f * normalizedEnergy + 0.5f * normalizedFriction);
+		//percentage of the maximum current, has to be greater than 60%
+		float serialPercentage = Mathf.Max(( 0.5f * normalizedEnergy + 0.5f * normalizedFriction), 0.6f);
 
 		return "S" + serialPercentage.ToString ("0.00") + ":" + controlWord;
 

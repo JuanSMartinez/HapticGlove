@@ -12,7 +12,7 @@ int UD = 12;
 //INC control of digital potentiometer
 int INC = 13;
 
-//Linear regression variables for supply control( Is = m*Vpot + b
+//Linear regression variables for supply control( Is = m*Vpot + b)
 float m = 32.555248527564;
 float b = 19.580882300717;
 
@@ -44,54 +44,69 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  readSerialLine();
-  gloveHandler();
+  String msg = readSerialLine();
+  gloveHandler(msg);
   incomingMessage = "";
 } 
 
-void readSerialLine(){
+String readSerialLine(){
+  String msg = "";
   if(Serial.available() >0){
     while(Serial.available() < 16) ;
     char byteReceived = Serial.read();
     //Look for starting character
-    char i = 0;
-    while(byteReceived != 'S' && i < 16){
-      byteReceived = Serial.read();
-      i ++;
-    }
+    //char i = 0;
+    //while(byteReceived != 'S' && i < 16){
+      //byteReceived = Serial.read();
+      //i ++;
+    //}
     //Starting character not found, message incomplete
-    if(i == 15)
-      return;
+    if(byteReceived != 'S')
+      return "";
   
     //Start storing message
     byteReceived = Serial.read();
     while(byteReceived != '\n'){
-      incomingMessage.concat(byteReceived);
+      msg.concat(byteReceived);
       byteReceived = Serial.read();
     }
   }
+  return msg;
 }
 
 
-void gloveHandler(){
-  if(incomingMessage != ""){
+void gloveHandler(String msg){
+  if(msg != "" && msg != incomingMessage){
+    incomingMessage = msg;
     String percentage = getValue(incomingMessage, ':', 0);
     String controlWord = getValue(incomingMessage, ':', 1);
     //Set digital potentiometer for supply
-    setDigitalPotentiometer(percentage);
-    //Wait some time to DC supply to stablelize
+    setDigitalPotentiometer(percentage, controlWord);
+    //Wait some time to DC supply to stabilize
     delay(50);
     //Activate motors
     activateMotors(controlWord);
   }
 }
 
-void setDigitalPotentiometer(String percentageS){
+void setDigitalPotentiometer(String percentageS, String controlWord){
     float percentage = percentageS.toFloat();
-    float Is = percentage*maxIs;
+    int n = getNumberOfActiveMotors(controlWord);
+    float Vp = 5.0*analogRead(Vpot)/1023.0;
+    if(n==0){
+      if(Vp >= 2.8)
+        setDigitalPotentiometer(2.0f);
+      return;
+    }
+    float Is = percentage*maxIs*n/(10.0f);
     float objectiveVoltage = (Is - b)/m;
+    setDigitalPotentiometer(objectiveVoltage);
+   
+}
 
-    /**
+void setDigitalPotentiometer(float objectiveVoltage){
+
+  /**
      * Digital potentiometer counter behaviour
      * UD = 0 -> Vp increases
      * UD = 1 -> Vp decreases
@@ -121,7 +136,16 @@ void setDigitalPotentiometer(String percentageS){
       }
       increaseVp();
      }
-     
+}
+
+int getNumberOfActiveMotors(String controlWord){
+  int n = 0;
+  for(char i = 0; i < 10; i++){
+    char motorControl = controlWord.charAt(i);
+    if(motorControl == '1')
+      n++;
+  }
+  return n;
 }
 
 void activateMotors(String controlWord){
@@ -142,19 +166,23 @@ void movePotCounter(){
 }
 
 void increaseVp(){
-  if(counterDirection != LOW)
+  if(counterDirection != LOW){
     counterDirection = LOW;
-  digitalWrite(UD, counterDirection);
+    digitalWrite(UD, counterDirection);
+  }
   delay(1);
   movePotCounter();
+  delay(5);
 }
 
 void decreaseVp(){
-  if(counterDirection != HIGH)
+  if(counterDirection != HIGH){
     counterDirection = HIGH;
-  digitalWrite(UD, counterDirection);
+    digitalWrite(UD, counterDirection);
+  }
   delay(1);
   movePotCounter();
+  delay(5);
 }
 
 String getValue(String data, char separator, int index)
