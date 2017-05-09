@@ -46,7 +46,7 @@ void loop() {
   // put your main code here, to run repeatedly:
   String msg = readSerialLine();
   gloveHandler(msg);
-  incomingMessage = "";
+  //incomingMessage = "";
 } 
 
 String readSerialLine(){
@@ -99,6 +99,7 @@ void setDigitalPotentiometer(String percentageS, String controlWord){
       return;
     }
     float Is = percentage*maxIs*n/(10.0f);
+    //float Is = percentage*maxIs;
     float objectiveVoltage = (Is - b)/m;
     setDigitalPotentiometer(objectiveVoltage);
    
