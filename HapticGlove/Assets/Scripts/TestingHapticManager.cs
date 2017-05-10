@@ -6,6 +6,9 @@ using UnityEngine.UI;
 
 public class TestingHapticManager : MonoBehaviour {
 
+	//Voltage Vp log
+	public Text log;
+
 	//Com port input
 	public InputField input;
 
@@ -65,6 +68,9 @@ public class TestingHapticManager : MonoBehaviour {
 			} else
 				controlWord += "D";
 
+		float Is = serialPercentage * 183.0f * GetNumberOfActiveMotors(controlWord) / (10.0f);
+		float objV = (Is - 19.580882300717f) / 32.555248527564f;
+		log.text = "Vp: " + objV.ToString ("0.00") + "V";
 		return "S" + serialPercentage.ToString ("0.00") + ":" + controlWord;
 
 	}
@@ -87,9 +93,18 @@ public class TestingHapticManager : MonoBehaviour {
 	}
 
 	public void Connect(){
-		Debug.Log (input.text);
+		
 		serialManager.portName = input.text;
 		serialManager.Initialize ();
 		serialManager.StartConnection ();
+	}
+
+	private int GetNumberOfActiveMotors(string controlWord){
+		char[] characters = controlWord.ToCharArray ();
+		int n = 0;
+		foreach (char c in characters)
+			if (c.Equals ('U'))
+				n++;
+		return n;
 	}
 }
