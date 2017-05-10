@@ -26,15 +26,20 @@ public class SerialManager : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-		port = new SerialPort (portName, baudRate);
-		port.ReadTimeout = timeOut;
-		port.Open ();
+		
 	}
 	
 	// Update is called once per frame
 	void Update () {
 		if(readingEnabled)
 			StartCoroutine (AsynchronousReadFromSerial((string s)=>ReadCallback(s), ()=> Debug.Log("Time out"), 100f));
+	}
+
+	//Initialize port settings
+	public void Initialize(){
+		port = new SerialPort (portName, baudRate);
+		port.ReadTimeout = timeOut;
+
 	}
 
 	//Start connection
@@ -44,13 +49,15 @@ public class SerialManager : MonoBehaviour {
 
 	//Write a line to the serial buffer
 	public void Write(string message){
-		
+		if(port != null && port.IsOpen){
 		port.WriteLine (message);
-		//port.BaseStream.Flush ();
+		port.BaseStream.Flush ();
+		}
 	}
 
 	void OnDestroy(){
-		port.Close ();
+		if(port != null && port.IsOpen)
+			port.Close ();
 		Debug.Log ("Closed port");
 	}
 		
