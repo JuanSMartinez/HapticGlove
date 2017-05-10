@@ -46,7 +46,7 @@ public class SerialManager : MonoBehaviour {
 	public void Write(string message){
 		
 		port.WriteLine (message);
-		port.BaseStream.Flush ();
+		//port.BaseStream.Flush ();
 	}
 
 	void OnDestroy(){

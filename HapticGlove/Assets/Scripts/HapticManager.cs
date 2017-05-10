@@ -101,16 +101,16 @@ public class HapticManager : MonoBehaviour {
 		RaycastHit hitPalm;
 		if (Physics.Raycast (collisionRayPalm, out hitPalm, rayDistance)) {
 			if (hitPalm.collider.CompareTag ("HapticObj")) {
-				controlWord += "1";
+				controlWord += "U";
 				float energy = PhysicsCalculator.GetKineticEnergyOfCollision (palm.transform.GetComponent<Rigidbody> (), hitPalm.transform.GetComponent<Rigidbody> ());
 				float friction = PhysicsCalculator.GetFrictionForceOfCollision (hitPalm.normal, hitPalm.transform.GetComponent<Rigidbody> (), hitPalm.collider.material);
 				totalEnergy += energy;
 				totalFriction += friction;
 			} else
-				controlWord += "0";
+				controlWord += "D";
 
 		} else {
-			controlWord += "0";
+			controlWord += "D";
 		}
 
 		//Calculate average energy and friction
@@ -136,7 +136,7 @@ public class HapticManager : MonoBehaviour {
 				if (bone.name.Substring (12, 3).Equals (boneSuffix))
 					found = true;
 			}
-			control += found ? "1" : "0";
+			control += found ? "U" : "D";
 		}
 		return control;
 	}

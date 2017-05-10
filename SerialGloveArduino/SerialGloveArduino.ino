@@ -46,29 +46,40 @@ void loop() {
   // put your main code here, to run repeatedly:
   String msg = readSerialLine();
   gloveHandler(msg);
-  //incomingMessage = "";
 } 
+
+String readSerialBuffer(){
+  String msg = "";
+  if(Serial.available() >= 16){
+    
+    //Read 16 bytes
+    char bytes[17];
+    char i = 0;
+    while(i < 17){
+     bytes[i] = Serial.read();
+     i++;
+    }
+  }
+  return msg;
+}
 
 String readSerialLine(){
   String msg = "";
   if(Serial.available() >0){
     while(Serial.available() < 16) ;
     char byteReceived = Serial.read();
-    //Look for starting character
-    //char i = 0;
-    //while(byteReceived != 'S' && i < 16){
-      //byteReceived = Serial.read();
-      //i ++;
-    //}
+    
     //Starting character not found, message incomplete
     if(byteReceived != 'S')
       return "";
   
     //Start storing message
     byteReceived = Serial.read();
-    while(byteReceived != '\n'){
+    char count = 0;
+    while(count < 15 ){
       msg.concat(byteReceived);
       byteReceived = Serial.read();
+      count++;
     }
   }
   return msg;
@@ -76,10 +87,11 @@ String readSerialLine(){
 
 
 void gloveHandler(String msg){
-  if(msg != "" && msg != incomingMessage){
+
+  if(msg != incomingMessage && msg != ""){
     incomingMessage = msg;
-    String percentage = getValue(incomingMessage, ':', 0);
-    String controlWord = getValue(incomingMessage, ':', 1);
+    String controlWord = getControlWord();
+    String percentage = getPercentage();
     //Set digital potentiometer for supply
     setDigitalPotentiometer(percentage, controlWord);
     //Wait some time to DC supply to stabilize
@@ -143,7 +155,7 @@ int getNumberOfActiveMotors(String controlWord){
   int n = 0;
   for(char i = 0; i < 10; i++){
     char motorControl = controlWord.charAt(i);
-    if(motorControl == '1')
+    if(motorControl == 'U')
       n++;
   }
   return n;
@@ -152,13 +164,18 @@ int getNumberOfActiveMotors(String controlWord){
 void activateMotors(String controlWord){
   for(char i = 0; i < 10; i++){
     char motorControl = controlWord.charAt(i);
-    if(motorControl == '1')
+    if(motorControl == 'U')
       digitalWrite(i+2, HIGH);
-    else if(motorControl == '0')
+    else
       digitalWrite(i+2, LOW);
   }
 }
 
+void deactivateAllMotors(){
+  for(char i = 0; i < 10; i++){
+      digitalWrite(i+2, LOW);
+  } 
+}
 
 void movePotCounter(){
   digitalWrite(INC, LOW);
@@ -186,20 +203,17 @@ void decreaseVp(){
   delay(5);
 }
 
-String getValue(String data, char separator, int index)
-{
-  int found = 0;
-  int strIndex[] = {0, -1};
-  int maxIndex = data.length()-1;
-
-  for(int i=0; i<=maxIndex && found<=index; i++){
-    if(data.charAt(i)==separator || i==maxIndex){
-        found++;
-        strIndex[0] = strIndex[1]+1;
-        strIndex[1] = (i == maxIndex) ? i+1 : i;
-    }
-  }
-
-  return found>index ? data.substring(strIndex[0], strIndex[1]) : "";
+String getControlWord(){
+  String controlWord = "";
+  for(char i = 5; i < 15; i++)
+    controlWord.concat(incomingMessage.charAt(i));
+  return controlWord;
 }
+
+String getPercentage(){
+  String percetnage = "";
+  for(char i = 0; i < 4; i++)
+    percetnage.concat(incomingMessage.charAt(i));
+}
+
 

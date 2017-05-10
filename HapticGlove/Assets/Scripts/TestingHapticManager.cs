@@ -39,6 +39,7 @@ public class TestingHapticManager : MonoBehaviour {
 		serialManager.Write(serialData);
 		//Debug.Log (serialManager.Read ());
 		Debug.Log(serialData);
+		//Debug.Log (serialManager.Read ());
 	}
 
 	private string GetHapticValues(){
@@ -72,16 +73,16 @@ public class TestingHapticManager : MonoBehaviour {
 		RaycastHit hitPalm;
 		if (Physics.Raycast (collisionRayPalm, out hitPalm, rayDistance)) {
 			if (hitPalm.collider.CompareTag ("HapticObj")) {
-				controlWord += "1";
+				controlWord += "U";
 				float energy = PhysicsCalculator.GetKineticEnergyOfCollision (palm.transform.GetComponent<Rigidbody> (), hitPalm.transform.GetComponent<Rigidbody> ());
 				float friction = PhysicsCalculator.GetFrictionForceOfCollision (hitPalm.normal, hitPalm.transform.GetComponent<Rigidbody> (), hitPalm.collider.material);
 				totalEnergy += energy;
 				totalFriction += friction;
 			} else
-				controlWord += "0";
+				controlWord += "D";
 
 		} else {
-			controlWord += "0";
+			controlWord += "D";
 		}
 
 		//Calculate average energy and friction
@@ -93,8 +94,8 @@ public class TestingHapticManager : MonoBehaviour {
 		float normalizedFriction = Mathf.Min (averageFriction, maxMass * 9.8f) / (maxMass * 9.8f);
 
 		//percentage of the maximum current, has to be greater than 60%
-		float serialPercentage = Mathf.Max(( 0.5f * normalizedEnergy + 0.5f * normalizedFriction), 0.6f);
-		//float serialPercentage = 1.0f;
+		//float serialPercentage = Mathf.Max(( 0.5f * normalizedEnergy + 0.5f * normalizedFriction), 0.6f);
+		float serialPercentage = 1.0f;
 
 		return "S" + serialPercentage.ToString ("0.00") + ":" + controlWord;
 
@@ -108,7 +109,7 @@ public class TestingHapticManager : MonoBehaviour {
 				if (bone.name.Equals (boneSuffix))
 					found = true;
 			}
-			control += found ? "1" : "0";
+			control += found ? "U" : "D";
 		}
 		return control;
 	}
