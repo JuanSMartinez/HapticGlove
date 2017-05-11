@@ -31,8 +31,8 @@ public class SerialManager : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		if(readingEnabled)
-			StartCoroutine (AsynchronousReadFromSerial((string s)=>ReadCallback(s), ()=> Debug.Log("Time out"), 100f));
+		if(readingEnabled && port != null && port.IsOpen)
+			StartCoroutine (AsynchronousReadFromSerial((string s)=>ReadCallback(s), ()=> Fail(), 100f));
 	}
 
 	//Initialize port settings
@@ -45,15 +45,21 @@ public class SerialManager : MonoBehaviour {
 	//Start connection
 	public void StartConnection(){
 		port.Open ();
+		Debug.Log ("Port opened");
 	}
 
 	//Write a line to the serial buffer
-	public void Write(string message){
+	//Returns true if data was sent, false otherwise
+	public bool Write(string message){
 		if(port != null && port.IsOpen){
-			port.WriteLine (message);
+			Debug.Log ("Sending: " + message);
+			port.Write (message);
+			//port.WriteLine (message);
 			port.BaseStream.Flush ();
+			return true;
 			//Debug.Log (port.ReadLine ());
 		}
+		return false;
 	}
 
 	void OnDestroy(){
@@ -74,6 +80,16 @@ public class SerialManager : MonoBehaviour {
 	//Read callback
 	void ReadCallback(string message ){
 		messageRead = message;
+	}
+
+	//Time out callback
+	void Fail(){
+
+	}
+
+	//Checks if there is an active connection
+	public bool ActiveConnection(){
+		return (port != null && port.IsOpen);
 	}
 
 	//Asynchronous read coroutine from serial port

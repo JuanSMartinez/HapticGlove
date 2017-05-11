@@ -5,7 +5,10 @@ using UnityEngine;
 public class SerialTester : MonoBehaviour {
 
 	//Message text
-	public UnityEngine.UI.Text textInput;
+	public UnityEngine.UI.InputField textInput;
+
+	//Port 
+	public UnityEngine.UI.InputField portInput;
 
 	//Response message from the serial port
 	public UnityEngine.UI.Text response;
@@ -20,8 +23,17 @@ public class SerialTester : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		if (serialManager.readingEnabled)
+		if (serialManager.readingEnabled) {
 			response.text = serialManager.Read ();
+		}
+
+	}
+
+	//Connect
+	public void Connect(){
+		serialManager.portName = portInput.text;
+		serialManager.Initialize ();
+		serialManager.StartConnection ();
 	}
 
 	//Send serial data

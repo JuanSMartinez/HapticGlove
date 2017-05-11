@@ -28,35 +28,40 @@ public class TestingHapticManager : MonoBehaviour {
 	public GameObject palm;
 
 	//Serial percentage 
-	private float serialPercentage=0;
+	private float serialPercentage;
 
 	//Serial data
-	private string serialWriteData="";
+	private string serialWriteData = "";
 
 	// Use this for initialization
 	void Start () {
-		
+		serialPercentage = 0.5f;
 	}
 	
 	// Update is called once per frame
 	void Update () {
 		//Compute haptic values for vibration and serial data
+
 		string serialData = GetHapticValues ();
+
 		//Send data through serial port
 		if (!serialData.Equals (serialWriteData)) {
 			serialWriteData = serialData;
-			serialManager.Write (serialData);
-			Debug.Log(serialData);
+			if(serialManager.Write (serialData)){
+				/*bool sent = false;
+				while (!sent) {
+					if (serialManager.Read ().Equals ("ACK"))
+						sent = true;
+					else
+						serialManager.Write (serialData);
+				}*/
+			}
 		}
 	}
 
 	private string GetHapticValues(){
 		//List of bones in contact with haptic object
 		List<GameObject> touchingBones = new List<GameObject> ();
-
-		//Total energy and friction values 
-		float totalEnergy = 0;
-		float totalFriction = 0;
 
 		//Calculate physics for each touching bone and populate list of touching bones
 		foreach (GameObject bone in bones) 
@@ -75,7 +80,7 @@ public class TestingHapticManager : MonoBehaviour {
 		float Is = serialPercentage * 183.0f * GetNumberOfActiveMotors(controlWord) / (10.0f);
 		float objV = (Is - 19.580882300717f) / 32.555248527564f;
 		log.text = "Vp: " + objV.ToString ("0.00") + "V";
-		return "S" + serialPercentage.ToString ("0.00") + ":" + controlWord;
+		return "S" + serialPercentage.ToString ("0.000") + ":" + controlWord + "E";
 
 	}
 
