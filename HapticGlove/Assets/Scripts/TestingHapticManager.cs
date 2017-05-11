@@ -55,6 +55,7 @@ public class TestingHapticManager : MonoBehaviour {
 					else
 						serialManager.Write (serialData);
 				}*/
+				Debug.Log(serialManager.Read ());
 			}
 		}
 	}

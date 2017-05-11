@@ -49,12 +49,34 @@ void setup() {
 
   //Program initial lowest current 
   setPotentiometerVoltage(0.28);
+/*
+  byteBuffer[0] = 'S';
+  byteBuffer[1] = '1';
+  byteBuffer[2] = '.';
+  byteBuffer[3] = '0';
+  byteBuffer[4] = '0';
+  byteBuffer[5] = '0';
+  byteBuffer[6] = ':';
+  byteBuffer[7] = 'U';
+  byteBuffer[8] = 'U';
+  byteBuffer[9] = 'U';
+  byteBuffer[10] = 'U';
+  byteBuffer[11] = 'U';
+  byteBuffer[12] = 'U';
+  byteBuffer[13] = 'U';
+  byteBuffer[14] = 'U';
+  byteBuffer[15] = 'U';
+  byteBuffer[16] = 'U';
+  byteBuffer[17] = 'E';
+  parseSerialMessage();
+  */
 
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
- 
+  
+  
 }
 
 //Arduino native function called when serial data is available
@@ -139,15 +161,16 @@ void setDigitalPotentiometer(){
     int n = getNumberOfActiveMotors();
     double VpRead = analogRead(Vpot);
     double Vp = (5.0*VpRead)/1023.0;
+    
+    //float Is = (percentage*currentRange+110.0)*n/(10);
+    double Is = (percentage*currentRange+110.0);
+    double objectiveVoltage = (n*(Is - b))/(10*m) ;
 
-    float Is = (percentage*currentRange+110.0)*n/(10.0f);
-    //double Is = (percentage*currentRange+110.0);
-    double objectiveVoltage = 3.5*(Is - b)/m ;
     if(objectiveVoltage < 0.28 || n == 0)
       objectiveVoltage = 0.28;
-    else if(objectiveVoltage > 5.0)
-      objectiveVoltage = 5.0;
-    setPotentiometerVoltage(objectiveVoltage); 
+    else if(objectiveVoltage > 5.2)
+      objectiveVoltage = 5.2;
+    setPotentiometerVoltage(objectiveVoltage);  
 }
 
 
@@ -164,31 +187,34 @@ void setPotentiometerVoltage(double objectiveVoltage){
      double newVp;
      double difference;
      char i = 0;
+     //Serial.println("Vo: " + String(objectiveVoltage,DEC));
      if(objectiveVoltage > Vp){
       while(objectiveVoltage > Vp){
+        //Serial.println("Vp increasing: " + String(Vp,DEC));
         increaseVp();
         VpRead = analogRead(Vpot);
         newVp = 5.0*VpRead/1023.0;
         difference = objectiveVoltage-newVp;
-        if(abs(difference) < 0.1 || i > 100)
+        if(abs(difference) < 0.2 || i > 100)
           break;
         Vp = newVp;
         i++;
       }
-      decreaseVp();
+      //decreaseVp();
      }
      else if(objectiveVoltage < Vp){
       while(objectiveVoltage < Vp){
+        //Serial.println("Vp decreasing: " + String(Vp,DEC));
         decreaseVp();
         VpRead = analogRead(Vpot);
         newVp = 5.0*VpRead/1023.0;
         difference = objectiveVoltage-newVp;
-        if(abs(difference) < 0.1 || i > 100)
+        if(abs(difference) < 0.2 || i > 100)
           break;
         Vp = newVp;
         i++;
       }
-      increaseVp();
+      //increaseVp();
      }
 }
 
@@ -205,12 +231,17 @@ int getNumberOfActiveMotors( ){
 
 //Activate motors with the control word
 void activateMotors(){
-  for(char i = 0; i < 10; i++){
-    char motorControl = controlWord[i];
-    if(motorControl == 'U')
-      digitalWrite(i+2, HIGH);
-    else
-      digitalWrite(i+2, LOW);
+  float percentage = atof(percentageString);
+  if(percentage < 0.05)
+    deactivateAllMotors();
+  else{
+    for(char i = 0; i < 10; i++){
+      char motorControl = controlWord[i];
+      if(motorControl == 'U')
+        digitalWrite(i+2, HIGH);
+      else
+        digitalWrite(i+2, LOW);
+    }
   }
 }
 
