@@ -1,10 +1,12 @@
-#include <SoftwareSerial.h>
+//#include <SoftwareSerial.h>
+//#include <SerialCommand.h>
+//SerialCommand sCmd;
 
 //Message
 String incomingMessage = "";
 
-//Maximum current (mA)
-int maxIs = 183;
+//Current range for all motors (mA)
+int currentRange = 73;
 
 //U/D' control of digital potentiometer
 int UD = 12;
@@ -13,14 +15,14 @@ int UD = 12;
 int INC = 13;
 
 //Linear regression variables for supply control( Is = m*Vpot + b)
-float m = 32.555248527564;
-float b = 19.580882300717;
+double m = 32.555248527564;
+double b = 19.580882300717;
 
 //ADC input for digital potentiometer voltage
 int Vpot = A0;
 
 //Current UD value
-char counterDirection;
+bool counterDirection;
 
 void setup() {
   // put your setup code here, to run once:
@@ -37,31 +39,19 @@ void setup() {
   //Digital potentiometer initialization
   pinMode(UD,OUTPUT);
   pinMode(INC, OUTPUT);
-  counterDirection = LOW;
-  digitalWrite(UD, counterDirection);
+  counterDirection = false;
+  digitalWrite(UD, LOW);
   digitalWrite(INC, HIGH);
+
+  setDigitalPotentiometer(0.28);
 }
 
 void loop() {
   // put your main code here, to run repeatedly:
   String msg = readSerialLine();
+  //String msg = "0.01:UUDDDDDDDU";
   gloveHandler(msg);
 } 
-
-String readSerialBuffer(){
-  String msg = "";
-  if(Serial.available() >= 16){
-    
-    //Read 16 bytes
-    char bytes[17];
-    char i = 0;
-    while(i < 17){
-     bytes[i] = Serial.read();
-     i++;
-    }
-  }
-  return msg;
-}
 
 String readSerialLine(){
   String msg = "";
@@ -74,11 +64,10 @@ String readSerialLine(){
       return "";
   
     //Start storing message
-    byteReceived = Serial.read();
     char count = 0;
     while(count < 15 ){
-      msg.concat(byteReceived);
       byteReceived = Serial.read();
+      msg.concat(byteReceived);
       count++;
     }
   }
@@ -87,7 +76,6 @@ String readSerialLine(){
 
 
 void gloveHandler(String msg){
-
   if(msg != incomingMessage && msg != ""){
     incomingMessage = msg;
     String controlWord = getControlWord();
@@ -95,24 +83,26 @@ void gloveHandler(String msg){
     //Set digital potentiometer for supply
     setDigitalPotentiometer(percentage, controlWord);
     //Wait some time to DC supply to stabilize
-    delay(50);
+    delay(100);
     //Activate motors
     activateMotors(controlWord);
   }
 }
 
 void setDigitalPotentiometer(String percentageS, String controlWord){
+    
     float percentage = percentageS.toFloat();
     int n = getNumberOfActiveMotors(controlWord);
-    float Vp = 5.0*analogRead(Vpot)/1023.0;
-    if(n==0){
-      if(Vp >= 2.8)
-        setDigitalPotentiometer(2.0f);
-      return;
-    }
-    float Is = percentage*maxIs*n/(10.0f);
-    //float Is = percentage*maxIs;
-    float objectiveVoltage = (Is - b)/m;
+    double VpRead = analogRead(Vpot);
+    double Vp = (5.0*VpRead)/1023.0;
+
+    //float Is = (percentage*currentRange+110.0)*n/(10.0f);
+    double Is = (percentage*currentRange+110.0);
+    double objectiveVoltage = (Is - b)/m;
+    if(objectiveVoltage < 0.28)
+      objectiveVoltage = 0.28;
+    else if(objectiveVoltage > 5.0)
+      objectiveVoltage = 5.0;
     setDigitalPotentiometer(objectiveVoltage);
    
 }
@@ -127,28 +117,34 @@ void setDigitalPotentiometer(float objectiveVoltage){
      float Vp = 5.0*analogRead(Vpot)/1023.0;
      float newVp;
      float difference;
+     //Serial.println("Initial Vp:"+ String(Vp, DEC));
+     //Serial.println("Objective Vp:"+ String(objectiveVoltage, DEC));
      if(objectiveVoltage > Vp){
       while(objectiveVoltage > Vp){
+        //Serial.println("Vp:"+ String(Vp, DEC));
         increaseVp();
         newVp = 5.0*analogRead(Vpot)/1023.0;
-        difference = Vp-newVp;
-        if(abs(difference) < 0.05)
-          return;
+        difference = objectiveVoltage-newVp;
+        if(abs(difference) < 0.1)
+          break;
         Vp = newVp;
       }
       decreaseVp();
      }
      else if(objectiveVoltage < Vp){
       while(objectiveVoltage < Vp){
+        //Serial.println("Vp:"+ String(Vp, DEC));
         decreaseVp();
         newVp = 5.0*analogRead(Vpot)/1023.0;
-        difference = Vp-newVp;
-        if(abs(difference) < 0.05)
-          return;
+        difference = objectiveVoltage-newVp;
+        
+        if(abs(difference) < 0.1)
+          break;
         Vp = newVp;
       }
       increaseVp();
      }
+     //Serial.println("Final Vp:"+ String(Vp, DEC));
 }
 
 int getNumberOfActiveMotors(String controlWord){
@@ -184,9 +180,9 @@ void movePotCounter(){
 }
 
 void increaseVp(){
-  if(counterDirection != LOW){
-    counterDirection = LOW;
-    digitalWrite(UD, counterDirection);
+  if(counterDirection){
+    counterDirection = false;
+    digitalWrite(UD, LOW);
   }
   delay(1);
   movePotCounter();
@@ -194,9 +190,9 @@ void increaseVp(){
 }
 
 void decreaseVp(){
-  if(counterDirection != HIGH){
-    counterDirection = HIGH;
-    digitalWrite(UD, counterDirection);
+  if(!counterDirection){
+    counterDirection = true;
+    digitalWrite(UD, HIGH);
   }
   delay(1);
   movePotCounter();
@@ -211,9 +207,11 @@ String getControlWord(){
 }
 
 String getPercentage(){
-  String percetnage = "";
+  String percentage = "";
   for(char i = 0; i < 4; i++)
-    percetnage.concat(incomingMessage.charAt(i));
+    percentage.concat(incomingMessage.charAt(i));
+  return percentage;
+    
 }
 
 

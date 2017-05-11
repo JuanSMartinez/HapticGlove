@@ -50,8 +50,9 @@ public class SerialManager : MonoBehaviour {
 	//Write a line to the serial buffer
 	public void Write(string message){
 		if(port != null && port.IsOpen){
-		port.WriteLine (message);
-		port.BaseStream.Flush ();
+			port.WriteLine (message);
+			port.BaseStream.Flush ();
+			//Debug.Log (port.ReadLine ());
 		}
 	}
 

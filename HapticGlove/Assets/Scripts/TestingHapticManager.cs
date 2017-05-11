@@ -30,6 +30,9 @@ public class TestingHapticManager : MonoBehaviour {
 	//Serial percentage 
 	private float serialPercentage=0;
 
+	//Serial data
+	private string serialWriteData="";
+
 	// Use this for initialization
 	void Start () {
 		
@@ -40,10 +43,11 @@ public class TestingHapticManager : MonoBehaviour {
 		//Compute haptic values for vibration and serial data
 		string serialData = GetHapticValues ();
 		//Send data through serial port
-		serialManager.Write(serialData);
-		//Debug.Log (serialManager.Read ());
-		Debug.Log(serialData);
-		//Debug.Log (serialManager.Read ());
+		if (!serialData.Equals (serialWriteData)) {
+			serialWriteData = serialData;
+			serialManager.Write (serialData);
+			Debug.Log(serialData);
+		}
 	}
 
 	private string GetHapticValues(){
