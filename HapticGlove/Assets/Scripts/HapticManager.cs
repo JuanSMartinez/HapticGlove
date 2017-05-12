@@ -28,10 +28,17 @@ public class HapticManager : MonoBehaviour {
 
 	//Maximum velocity to achieve in movement in m/s
 	public float maxVelocity = 2f;
+
+	//Serial data
+	private string serialWriteData = "";
+
+
 	
 	// Use this for initialization
 	void Start () {
 		provider = FindObjectOfType<LeapProvider> ();
+		serialManager.Initialize ();
+		serialManager.StartConnection ();
 	}
 	
 	// Update is called once per frame
@@ -44,11 +51,13 @@ public class HapticManager : MonoBehaviour {
 			//Compute haptic values for vibration and serial data
 			string serialData = GetHapticValues (bones, hand.PalmNormal.ToVector3());
 			//Send data through serial port
-			serialManager.Write(serialData);
-			//Debug.Log (serialManager.Read ());
-			Debug.Log(serialData);
+			if (!serialData.Equals (serialWriteData) || GetNumberOfActiveMotors(serialData)==0) {
+				serialWriteData = serialData;
+				SendDataProtocol (serialWriteData);
+			}
 	
 		}
+
 
 	}
 
@@ -123,8 +132,8 @@ public class HapticManager : MonoBehaviour {
 
 		//percentage of the maximum current, has to be greater than 60%
 		float serialPercentage = Mathf.Max(( 0.5f * normalizedEnergy + 0.5f * normalizedFriction), 0.6f);
-
-		return "S" + serialPercentage.ToString ("0.00") + ":" + controlWord;
+		//float serialPercentage = 1.0f;
+		return "S" + serialPercentage.ToString ("0.000") + ":" + controlWord+"E";
 
 	}
 
@@ -140,4 +149,39 @@ public class HapticManager : MonoBehaviour {
 		}
 		return control;
 	}
+
+	private void SendDataProtocol(string serialData){
+		int tries = 0;
+		if(serialManager.Write (serialData)){
+			bool proceed = false;
+			string response = serialManager.Read ();
+			while (!proceed && tries < 5) {
+				Debug.Log(response);
+				if (response.Equals ("ACK")) {
+					proceed = true;
+				} else if(response.Equals("NACK")) {
+					serialManager.Write (serialWriteData);
+				}
+				response = serialManager.Read ();
+				tries++;
+			}
+
+		}
+	}
+
+	private int GetNumberOfActiveMotors(string serialData){
+		char[] characters = serialData.ToCharArray ();
+		int n = 0;
+		foreach (char c in characters)
+			if (c == 'U')
+				n++;
+		return n;
+	}
+
+
+
+
+
+
+
 }

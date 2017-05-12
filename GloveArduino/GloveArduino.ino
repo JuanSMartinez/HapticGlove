@@ -98,7 +98,42 @@ void serialEvent(){
   
     //Parse the received data
     parseSerialMessage();
+    //parseSerialCommunication();
   }
+}
+
+//Checks the received buffer for formating and protocol words
+void parseSerialCommunication(){
+  //Possible messages
+  bool format = byteBuffer[0] == 'S' && byteBuffer[17] == 'E' && byteBuffer[2] == '.' && byteBuffer[6] == ':';
+  bool SACK = byteBuffer[0] == 'S' && byteBuffer[1] == 'S' && byteBuffer[2] == 'A' && byteBuffer[3] == 'C' && byteBuffer[4] == 'K';
+
+  if(format){
+    //The format is correct and the data can be parsed and saved
+
+    //Get percentage string
+    formatPercentageString();
+    
+    //Get control word
+    formatControlWord();
+
+    //Tell the application that the message is ok and we are ready to proceed
+    Serial.println("ACK");
+    
+  }
+  else if(SACK){
+    //The application knows that the format was ok and tells the microcontroller to proceed
+
+    //Manage glove changes
+    controlGlove();
+  }
+  else{
+    //Message corrupted
+    Serial.println("NACK");
+  }
+
+  //Release the lock
+  lock = false;
 }
 
 //Checks the received buffer for formating
@@ -107,7 +142,7 @@ void parseSerialMessage(){
   bool format = byteBuffer[0] == 'S' && byteBuffer[17] == 'E' && byteBuffer[2] == '.' && byteBuffer[6] == ':';
   if(format){
     Serial.println("ACK");
-    
+    Serial.flush();
     //Get percentage string
     formatPercentageString();
     
@@ -117,8 +152,11 @@ void parseSerialMessage(){
     //Manage glove changes
     controlGlove();
   }
-  else
+  else{
     Serial.println("NACK");
+    Serial.flush();
+    deactivateAllMotors();
+  }
 
   //Release the lock
   lock = false;

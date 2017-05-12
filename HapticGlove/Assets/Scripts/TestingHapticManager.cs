@@ -45,19 +45,7 @@ public class TestingHapticManager : MonoBehaviour {
 		string serialData = GetHapticValues ();
 
 		//Send data through serial port
-		if (!serialData.Equals (serialWriteData)) {
-			serialWriteData = serialData;
-			if(serialManager.Write (serialData)){
-				/*bool sent = false;
-				while (!sent) {
-					if (serialManager.Read ().Equals ("ACK"))
-						sent = true;
-					else
-						serialManager.Write (serialData);
-				}*/
-				Debug.Log(serialManager.Read ());
-			}
-		}
+		SendDataProtocol(serialData);
 	}
 
 	private string GetHapticValues(){
@@ -116,5 +104,24 @@ public class TestingHapticManager : MonoBehaviour {
 			if (c.Equals ('U'))
 				n++;
 		return n;
+	}
+
+	private void SendDataProtocol(string serialData){
+		int tries = 0;
+		if(serialManager.Write (serialData)){
+			bool proceed = false;
+			string response = serialManager.Read ();
+			while (!proceed && tries < 5) {
+				Debug.Log(response);
+				if (response.Equals ("ACK")) {
+					proceed = true;
+				} else if(response.Equals("NACK")) {
+					serialManager.Write (serialWriteData);
+				}
+				response = serialManager.Read ();
+				tries++;
+			}
+
+		}
 	}
 }

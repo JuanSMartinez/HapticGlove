@@ -46,6 +46,7 @@ public class SerialManager : MonoBehaviour {
 	public void StartConnection(){
 		port.Open ();
 		Debug.Log ("Port opened");
+
 	}
 
 	//Write a line to the serial buffer
@@ -54,10 +55,8 @@ public class SerialManager : MonoBehaviour {
 		if(port != null && port.IsOpen){
 			Debug.Log ("Sending: " + message);
 			port.Write (message);
-			//port.WriteLine (message);
 			port.BaseStream.Flush ();
 			return true;
-			//Debug.Log (port.ReadLine ());
 		}
 		return false;
 	}
@@ -71,7 +70,7 @@ public class SerialManager : MonoBehaviour {
 
 	//Read from serial port
 	public string Read(){
-		if (readingEnabled)
+		if (readingEnabled) 
 			return messageRead;
 		else
 			return "No Reading Enabled";
@@ -80,6 +79,7 @@ public class SerialManager : MonoBehaviour {
 	//Read callback
 	void ReadCallback(string message ){
 		messageRead = message;
+
 	}
 
 	//Time out callback
