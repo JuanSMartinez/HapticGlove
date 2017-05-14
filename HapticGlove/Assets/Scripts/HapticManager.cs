@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using Leap.Unity.Interaction;
 using UnityEngine;
@@ -33,14 +33,14 @@ public class HapticManager : MonoBehaviour {
 	private string serialWriteData = "";
 
 
-	
+
 	// Use this for initialization
 	void Start () {
 		provider = FindObjectOfType<LeapProvider> ();
 		serialManager.Initialize ();
 		serialManager.StartConnection ();
 	}
-	
+
 	// Update is called once per frame
 	void Update () {
 		Frame frame = provider.CurrentFrame;
@@ -53,9 +53,12 @@ public class HapticManager : MonoBehaviour {
 			//Send data through serial port
 			if (!serialData.Equals (serialWriteData) || GetNumberOfActiveMotors(serialData)==0) {
 				serialWriteData = serialData;
+				//StartCoroutine (AsynchronousDataProtocol (serialWriteData));
 				SendDataProtocol (serialWriteData);
 			}
-	
+			//serialWriteData = serialData;
+			//SendDataProtocol (serialWriteData);
+
 		}
 
 
@@ -76,13 +79,13 @@ public class HapticManager : MonoBehaviour {
 		}
 		return result;
 	}
-		
+
 
 	private string GetHapticValues(List<InteractionBrushBone> bones, Vector3 palmDirection){
 		//List of bones in contact with haptic object
 		List<InteractionBrushBone> touchingBones = new List<InteractionBrushBone> ();
 
-		//Total energy and friction values 
+		//Total energy and friction values
 		float totalEnergy = 0;
 		float totalFriction = 0;
 
@@ -126,7 +129,7 @@ public class HapticManager : MonoBehaviour {
 		float averageEnergy = totalEnergy / 10f;
 		float averageFriction = totalFriction / 10f;
 
-		//Normalize energy and friction in terms of the maximum kinetic energy and maximum weight 
+		//Normalize energy and friction in terms of the maximum kinetic energy and maximum weight
 		float normalizedEnergy = Mathf.Min(averageEnergy, 0.5f*maxMass*maxVelocity*maxVelocity)/ (0.5f*maxMass*maxVelocity*maxVelocity);
 		float normalizedFriction = Mathf.Min (averageFriction, maxMass * 9.8f) / (maxMass * 9.8f);
 
@@ -159,8 +162,8 @@ public class HapticManager : MonoBehaviour {
 				Debug.Log(response);
 				if (response.Equals ("ACK")) {
 					proceed = true;
-				} else if(response.Equals("NACK")) {
-					serialManager.Write (serialWriteData);
+				} else /*if (response.Equals ("NACK"))*/ {
+					serialManager.Write (serialData);
 				}
 				response = serialManager.Read ();
 				tries++;
@@ -168,6 +171,7 @@ public class HapticManager : MonoBehaviour {
 
 		}
 	}
+
 
 	private int GetNumberOfActiveMotors(string serialData){
 		char[] characters = serialData.ToCharArray ();

@@ -45,7 +45,14 @@ public class TestingHapticManager : MonoBehaviour {
 		string serialData = GetHapticValues ();
 
 		//Send data through serial port
-		SendDataProtocol(serialData);
+		serialManager.Write(serialData);
+		Debug.Log (serialManager.Read ());
+		/*
+		if (!serialData.Equals (serialWriteData) || GetNumberOfActiveMotors(serialData)==0) {
+			serialWriteData = serialData;
+			SendDataProtocol (serialWriteData);
+		}
+		*/
 	}
 
 	private string GetHapticValues(){
@@ -96,15 +103,7 @@ public class TestingHapticManager : MonoBehaviour {
 		serialManager.Initialize ();
 		serialManager.StartConnection ();
 	}
-
-	private int GetNumberOfActiveMotors(string controlWord){
-		char[] characters = controlWord.ToCharArray ();
-		int n = 0;
-		foreach (char c in characters)
-			if (c.Equals ('U'))
-				n++;
-		return n;
-	}
+		
 
 	private void SendDataProtocol(string serialData){
 		int tries = 0;
@@ -115,13 +114,22 @@ public class TestingHapticManager : MonoBehaviour {
 				Debug.Log(response);
 				if (response.Equals ("ACK")) {
 					proceed = true;
-				} else if(response.Equals("NACK")) {
-					serialManager.Write (serialWriteData);
+				} else {
+					serialManager.Write (serialData);
 				}
 				response = serialManager.Read ();
 				tries++;
 			}
 
 		}
+	}
+
+	private int GetNumberOfActiveMotors(string serialData){
+		char[] characters = serialData.ToCharArray ();
+		int n = 0;
+		foreach (char c in characters)
+			if (c == 'U')
+				n++;
+		return n;
 	}
 }

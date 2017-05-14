@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.IO.Ports;
@@ -21,14 +21,14 @@ public class SerialManager : MonoBehaviour {
 	//Message string from serial port
 	private string messageRead = "";
 
-	//Control variable to tell if reading is enabled 
+	//Control variable to tell if reading is enabled
 	public bool readingEnabled = false;
 
 	// Use this for initialization
 	void Start () {
-		
+
 	}
-	
+
 	// Update is called once per frame
 	void Update () {
 		if(readingEnabled && port != null && port.IsOpen)
@@ -39,6 +39,7 @@ public class SerialManager : MonoBehaviour {
 	public void Initialize(){
 		port = new SerialPort (portName, baudRate);
 		port.ReadTimeout = timeOut;
+		port.WriteTimeout = timeOut;
 
 	}
 
@@ -61,16 +62,20 @@ public class SerialManager : MonoBehaviour {
 		return false;
 	}
 
+	public void WriteRoutine(string message){
+		StartCoroutine(AsynchronousWrite(message, 100f));
+	}
+
 	void OnDestroy(){
 		if(port != null && port.IsOpen)
 			port.Close ();
 		Debug.Log ("Closed port");
 	}
-		
+
 
 	//Read from serial port
 	public string Read(){
-		if (readingEnabled) 
+		if (readingEnabled)
 			return messageRead;
 		else
 			return "No Reading Enabled";
@@ -123,5 +128,14 @@ public class SerialManager : MonoBehaviour {
 		if (fail != null)
 			fail();
 		yield return null;
+	}
+
+	public IEnumerator AsynchronousWrite(string message, float miliseconds){
+		yield return new WaitForSeconds (miliseconds / 1000.0f);
+		if (port != null && port.IsOpen) {
+			port.Write (message);
+			port.BaseStream.Flush ();
+		}
+
 	}
 }

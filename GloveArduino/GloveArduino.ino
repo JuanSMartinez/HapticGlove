@@ -33,6 +33,7 @@ bool lock = false;
 void setup() {
   //Serial initialization
   Serial.begin(9600);
+  Serial.setTimeout(110);
 
   //Motor signals initialization
   for(char i = 2; i <= 11; i++){
@@ -143,6 +144,7 @@ void parseSerialMessage(){
   if(format){
     Serial.println("ACK");
     Serial.flush();
+    
     //Get percentage string
     formatPercentageString();
     
@@ -153,8 +155,9 @@ void parseSerialMessage(){
     controlGlove();
   }
   else{
-    Serial.println("NACK");
+    Serial.println("ERROR: " + String(byteBuffer));
     Serial.flush();
+    
     deactivateAllMotors();
   }
 
