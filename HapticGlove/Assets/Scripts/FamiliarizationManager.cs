@@ -15,7 +15,7 @@ public class FamiliarizationManager : MonoBehaviour {
 	public const int S_END = 5;
 
 	//Current state
-	private int currentState = 0;
+	private int currentState = S1;
 
 	//Control variable that tells that the 3 sec routine is active
 	private bool routineActive = false;
@@ -34,7 +34,7 @@ public class FamiliarizationManager : MonoBehaviour {
 	public SerialManager serialManager;
 
 	//Array of motors
-	public List<GameObject> actuators;
+	public GameObject[] actuators;
 
 	//Com port input
 	public InputField input;
@@ -48,6 +48,7 @@ public class FamiliarizationManager : MonoBehaviour {
 	//Intensity log components
 	public Text intensityLog;
 	public Slider intensitySlider;
+	public Text completedcyclesLog;
 
 
 	// Use this for initialization
@@ -57,12 +58,14 @@ public class FamiliarizationManager : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		if (start)
+		if (start) {
 			StateTransition ();
+		}
 	}
 
 	//State transition handler
 	private void StateTransition(){
+
 
 		//If the 3 seconds routines are not active, manage states
 		if (!routineActive) {
@@ -83,34 +86,39 @@ public class FamiliarizationManager : MonoBehaviour {
 				currentState = S_ON;
 				break;
 			case S_ON:
+				routineActive = true;
 				StartCoroutine (OnRoutine ());
 				break;
 			case S_OFF:
+				routineActive = true;
 				StartCoroutine (OffRoutine ());
 				break;
 			case S_END:
 				StopStateMachine ();
 				SceneManager.LoadScene (SceneManager.GetActiveScene ().name);
 				break;
-			default:
-				currentState = S1;
-				break;
+			
 			}
+
+
 		}
+
 	}
 
 	//3 seconds routine to activate actuators
 	private IEnumerator OnRoutine(){
-		routineActive = true;
-		string message = "S" + intensity + ":" + "UUUUUUUUUUE";
-		int tries = 0;
-		serialManager.Write (message);
-		string response = serialManager.Read ();
-		while (!response.Equals ("ACK") && tries < 5) {
-			serialManager.Write (message);
-			response = serialManager.Read ();
+		string baseMessage = "S" + intensity + ":" + "DDDDDDDDDDE";
+		for (int i = 0; i < 10; i++) {
+			char[] message = baseMessage.ToCharArray();
+			message [i + 7] = 'U';
+			WriteProtocol (new string(message));
+			ActivateActuator (i);
+			yield return new WaitForSeconds (3f);
 		}
-		ActivateActuators ();
+		DeactivateAllActuators ();
+		baseMessage = "S" + intensity + ":" + "UUUUUUUUUUE";
+		WriteProtocol (baseMessage);
+		ActivateAllActuators ();
 		yield return new WaitForSeconds (3f);
 		routineActive = false;
 		currentState = S_OFF;
@@ -118,16 +126,9 @@ public class FamiliarizationManager : MonoBehaviour {
 
 	//3 seconds routin to deactivate motors
 	private IEnumerator OffRoutine(){
-		routineActive = false;
 		string message = "S" + intensity + ":" + "DDDDDDDDDDE";
-		int tries = 0;
-		serialManager.Write (message);
-		string response = serialManager.Read ();
-		while (!response.Equals ("ACK") && tries < 5) {
-			serialManager.Write (message);
-			response = serialManager.Read ();
-		}
-		DeactivateActuators ();
+		WriteProtocol (message);
+		DeactivateAllActuators ();
 		yield return new WaitForSeconds (3f);
 		if(intensity.Equals("1.000"))
 			completedCycles ++;
@@ -143,16 +144,30 @@ public class FamiliarizationManager : MonoBehaviour {
 
 	}
 
-	//Visually activate actuators
-	private void ActivateActuators(){
+	//Visually activate all actuators
+	private void ActivateAllActuators(){
 		foreach (GameObject motor in actuators)
-			motor.GetComponent<MeshRenderer> ().material = active;
+			for (int i = 0; i < motor.transform.childCount; i++)
+				motor.transform.GetChild (i).GetComponent<MeshRenderer> ().material = active;
+	}
+
+	//Visually activate actuator
+	private void ActivateActuator(int index){
+		for (int i = 0; i < actuators.Length; i++) {
+			if(i == index)
+				for (int j = 0; j < actuators[i].transform.childCount; j++)
+					actuators[i].transform.GetChild (j).GetComponent<MeshRenderer> ().material = active;
+			else
+				for (int j = 0; j < actuators[i].transform.childCount; j++)
+					actuators[i].transform.GetChild (j).GetComponent<MeshRenderer> ().material = inactive;
+		}
 	}
 
 	//Visually deactivate all actuators
-	private void DeactivateActuators(){
+	private void DeactivateAllActuators(){
 		foreach (GameObject motor in actuators)
-			motor.GetComponent<MeshRenderer> ().material = inactive;
+			for (int i = 0; i < motor.transform.childCount; i++)
+				motor.transform.GetChild (i).GetComponent<MeshRenderer> ().material = inactive;
 	}
 
 	//Start state machine
@@ -163,16 +178,12 @@ public class FamiliarizationManager : MonoBehaviour {
 
 	//Stop state machine
 	public void StopStateMachine(){
+		
 		string message = "S0.100:DDDDDDDDDDE";
-		serialManager.Write (message);
-		string response = serialManager.Read ();
-		int tries = 0;
-		while (!response.Equals ("ACK") && tries < 5) {
-			serialManager.Write (message);
-			response = serialManager.Read ();
-		}
+		WriteProtocol (message);
 		currentState = S1;
 		start = false;
+
 	}
 
 	//Connect to the glove
@@ -186,5 +197,21 @@ public class FamiliarizationManager : MonoBehaviour {
 	private void ShowIntesity (){
 		intensityLog.text = "Intensidad: " + float.Parse (intensity) * 100 + "%";
 		intensitySlider.value = float.Parse (intensity);
+		completedcyclesLog.text = "Ciclos Completados: " + completedCycles;
 	}
+
+	//Writing protocol
+	private void WriteProtocol(string message){
+		int tries = 0;
+		serialManager.Write (message);
+		string response = serialManager.Read ();
+		while (!(response.Equals ("ACK") || response.Equals ("")) && tries < 5) {
+			Debug.Log ("Response: " + response);
+			serialManager.Write (message);
+			response = serialManager.Read ();
+			tries++;
+		}
+	}
+
+
 }
