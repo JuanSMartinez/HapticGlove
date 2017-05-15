@@ -23,7 +23,6 @@ public class FamiliarizationManager : MonoBehaviour {
 	//Control variable to start the state machine
 	private bool start = false;
 
-
 	//Material when motors are active
 	public Material active;
 
@@ -50,6 +49,9 @@ public class FamiliarizationManager : MonoBehaviour {
 	public Slider intensitySlider;
 	public Text completedcyclesLog;
 
+	//Serial data to write
+	private string serialData = "S0.100:DDDDDDDDDDE";
+
 
 	// Use this for initialization
 	void Start () {
@@ -60,6 +62,7 @@ public class FamiliarizationManager : MonoBehaviour {
 	void Update () {
 		if (start) {
 			StateTransition ();
+			WriteData ();
 		}
 	}
 
@@ -111,13 +114,15 @@ public class FamiliarizationManager : MonoBehaviour {
 		for (int i = 0; i < 10; i++) {
 			char[] message = baseMessage.ToCharArray();
 			message [i + 7] = 'U';
-			WriteProtocol (new string(message));
+			//WriteProtocol (new string(message));
+			serialData = new string(message);
 			ActivateActuator (i);
 			yield return new WaitForSeconds (3f);
 		}
 		DeactivateAllActuators ();
 		baseMessage = "S" + intensity + ":" + "UUUUUUUUUUE";
-		WriteProtocol (baseMessage);
+		//WriteProtocol (baseMessage);
+		serialData = baseMessage;
 		ActivateAllActuators ();
 		yield return new WaitForSeconds (3f);
 		routineActive = false;
@@ -127,7 +132,8 @@ public class FamiliarizationManager : MonoBehaviour {
 	//3 seconds routin to deactivate motors
 	private IEnumerator OffRoutine(){
 		string message = "S" + intensity + ":" + "DDDDDDDDDDE";
-		WriteProtocol (message);
+		//WriteProtocol (message);
+		serialData = message;
 		DeactivateAllActuators ();
 		yield return new WaitForSeconds (3f);
 		if(intensity.Equals("1.000"))
@@ -180,7 +186,8 @@ public class FamiliarizationManager : MonoBehaviour {
 	public void StopStateMachine(){
 		
 		string message = "S0.100:DDDDDDDDDDE";
-		WriteProtocol (message);
+		//WriteProtocol (message);
+		serialData = message;
 		currentState = S1;
 		start = false;
 
@@ -211,6 +218,12 @@ public class FamiliarizationManager : MonoBehaviour {
 			response = serialManager.Read ();
 			tries++;
 		}
+	}
+
+	//Simple write data
+	private void WriteData(){
+		serialManager.Write (serialData);
+		Debug.Log (serialManager.Read ());
 	}
 
 
