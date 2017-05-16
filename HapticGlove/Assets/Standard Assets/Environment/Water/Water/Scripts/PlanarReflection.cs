@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-
 using UnityEngine;
 
 namespace UnityStandardAssets.Water
@@ -14,22 +13,16 @@ namespace UnityStandardAssets.Water
         public Color clearColor = Color.grey;
         public String reflectionSampler = "_ReflectionTex";
         public float clipPlaneOffset = 0.07F;
-	    public Vector2 renderTextureSize = new Vector2(1920,1080);
-	    public float renderTextureSizeMult = 1;
-	    public bool renderTextureSizeFromCamera = true; 
-	   public Vector2 editorRTSize = new Vector2(1920*0.5f,1080*0.5f);
-		public RenderingPath renderingPath = RenderingPath.DeferredShading;
-	    
+
+
         Vector3 m_Oldpos;
         Camera m_ReflectionCamera;
         Material m_SharedMaterial;
         Dictionary<Camera, bool> m_HelperCameras;
 
-	    private int rtWidth, rtHeight;
 
         public void Start()
         {
-			
             m_SharedMaterial = ((WaterBase)gameObject.GetComponent(typeof(WaterBase))).sharedMaterial;
         }
 
@@ -54,19 +47,7 @@ namespace UnityStandardAssets.Water
 
             SetStandardCameraParameter(reflectCamera, reflectionMask);
 
-			//rtWidth = (int) (renderTextureSize.x*renderTextureSizeMult);
-			//rtHeight = (int) (renderTextureSize.y*renderTextureSizeMult);
-
-			//if (renderTextureSizeFromCamera) {
-				
-				//rtWidth = (int)(cam.pixelWidth * renderTextureSizeMult);
-				//rtHeight = (int)(cam.pixelHeight * renderTextureSizeMult);
-
-			//}
-	       
-
-
-            if (!reflectCamera.targetTexture||reflectCamera.targetTexture.width != rtWidth ||reflectCamera.targetTexture.height != rtHeight)
+            if (!reflectCamera.targetTexture)
             {
                 reflectCamera.targetTexture = CreateTextureFor(cam);
             }
@@ -85,25 +66,15 @@ namespace UnityStandardAssets.Water
 
         RenderTexture CreateTextureFor(Camera cam)
         {
-			//RenderTexture rt = new RenderTexture(Mathf.FloorToInt(cam.pixelWidth * 0.5F),
-			// Mathf.FloorToInt(cam.pixelHeight * 0.5F), 24, RenderTextureFormat.ARGBFloat);
-
-
-
-			Debug.Log("PlanarReflection - Creating new RenderTexture: " + rtWidth + " x " + rtHeight,this);
-			RenderTexture rt = new RenderTexture(rtWidth,rtHeight, 24, RenderTextureFormat.ARGBFloat);
-
+            RenderTexture rt = new RenderTexture(Mathf.FloorToInt(cam.pixelWidth * 0.5F),
+                Mathf.FloorToInt(cam.pixelHeight * 0.5F), 24);
             rt.hideFlags = HideFlags.DontSave;
             return rt;
         }
 
 
-        public void RenderHelpCameras(Camera currentCam) {
-	       // cameraStore = currentCam;
-			//CheckRTSize(currentCam);
-
-	        //if (rtWidth == 0 || rtHeight ==0) return; // not ready yet come back after CheckRTSize has ran
-	       // cameraStore= currentCam;
+        public void RenderHelpCameras(Camera currentCam)
+        {
             if (null == m_HelperCameras)
             {
                 m_HelperCameras = new Dictionary<Camera, bool>();
@@ -123,73 +94,14 @@ namespace UnityStandardAssets.Water
                 m_ReflectionCamera = CreateReflectionCameraFor(currentCam);
             }
 
-			CheckRTSize(currentCam);
             RenderReflectionFor(currentCam, m_ReflectionCamera);
-
 
             m_HelperCameras[currentCam] = true;
         }
 
-	   // private Camera cameraStore;
-	    public void CheckRTSize(Camera currentCam ) {
-			//Debug.Log("CheckRTSize: " + currentCam.pixelWidth);
-			//if ( currentCam != null) {
-			// if (currentCam != SceneView.lastActiveSceneView.camera) return;
-			//
 
-				var rtWidth2 = 0;
-				var rtHeight2 = 0;
-				if (renderTextureSizeFromCamera) {
-					rtWidth2 = (int) (currentCam.pixelWidth*renderTextureSizeMult);
-					rtHeight2 = (int) (currentCam.pixelHeight*renderTextureSizeMult);
-				} else {
-					rtWidth2 = (int)renderTextureSize.x;
-					rtHeight2 = (int)renderTextureSize.y;
-				}
-		  
-
-				if (rtWidth2 < 32) rtWidth2 = 32;
-				if (rtHeight2 < 32) rtHeight2 = 32;
-				if (rtWidth2 < 512) rtWidth2 = 512; // Do not go below 512 ever, as will be ugly ;-)
-				if (rtHeight2 < 512) rtHeight2 = 512;
-
-
-			// TODO hack so in editor mode it sticks to one res even if camera change due to it having multiple scene cameras/views flip flopping
-#if UNITY_EDITOR
-		    if (!Application.isPlaying) {
-			    rtWidth2 = (int) editorRTSize.x;
-			    rtHeight2 = (int) editorRTSize.y;
-		    } else {
-			    if (renderTextureSizeFromCamera) {
-					// If in Editor and playing but renderTextureSizeFromCamera was set ( renderTextureSizeFromCamera is false when capturing to video )
-					rtWidth2 = (int) editorRTSize.x;
-			    rtHeight2 = (int) editorRTSize.y;
-				}
-		    }
-#endif
-
-
-
-			if (rtWidth != rtWidth2 || rtHeight != rtHeight2) {
-				    rtWidth = rtWidth2;
-				    rtHeight = rtHeight2;
-				    Debug.Log("camera (" +currentCam.name +") changed at runtime, creating new RenderTexture",currentCam);
-				    //	if (m_ReflectionCamera != null) {
-				   if(m_ReflectionCamera) DestroyImmediate(m_ReflectionCamera.gameObject);
-				   m_ReflectionCamera = CreateReflectionCameraFor(currentCam);
-				   // currentCam = null;
-				    //}
-			    }
-		   // }
-	    }
-
-	    public void LateUpdate() {
-
-		   // CheckRTSize();
-			if (destroyNextUpdate && m_ReflectionCamera != null) {
-				destroyNextUpdate = false;
-		        DestroyImmediate(m_ReflectionCamera.gameObject);
-	        }
+        public void LateUpdate()
+        {
             if (null != m_HelperCameras)
             {
                 m_HelperCameras.Clear();
@@ -207,22 +119,9 @@ namespace UnityStandardAssets.Water
             }
         }
 
-		
-	    private bool destroyNextUpdate;
-	    public void OnValidate() {
-			destroyNextUpdate =true;
-			
-		}
 
-	    public void OnEnable() {
-		   // CheckRTSize();
-	        
-
-	        //if (m_ReflectionCamera != null) {
-		    //    DestroyImmediate(m_ReflectionCamera.gameObject);
-			//	 cameraStore = null;
-	        //}
-	        
+        public void OnEnable()
+        {
             Shader.EnableKeyword("WATER_REFLECTIVE");
             Shader.DisableKeyword("WATER_SIMPLE");
         }
@@ -306,13 +205,10 @@ namespace UnityStandardAssets.Water
 
         void SaneCameraSettings(Camera helperCam)
         {
-            helperCam.depthTextureMode = DepthTextureMode.DepthNormals;
+            helperCam.depthTextureMode = DepthTextureMode.None;
             helperCam.backgroundColor = Color.black;
             helperCam.clearFlags = CameraClearFlags.SolidColor;
-	        helperCam.renderingPath = renderingPath;
-            helperCam.hdr = true;
-            helperCam.useOcclusionCulling = false;
-			
+            helperCam.renderingPath = RenderingPath.Forward;
         }
 
 

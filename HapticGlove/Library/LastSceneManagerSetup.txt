@@ -1,4 +1,4 @@
 sceneSetups:
-- path: Assets/Scenes/MacTesting.unity
+- path: Assets/myScenes/MacTesting.unity
   isLoaded: 1
   isActive: 1
