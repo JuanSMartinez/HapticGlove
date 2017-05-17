@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class GestureManager : MonoBehaviour {
 
@@ -14,8 +15,18 @@ public class GestureManager : MonoBehaviour {
 		
 	}
 
+	//Load Main Menu
+	public void LoadMainMenu(){
+		SceneManager.LoadScene ("MainMenu");
+	}
+
 	//Log Gesture
 	public void LogGestureDetection(){
 		Debug.Log ("Gesture detected");
+	}
+
+	//Reload scene
+	public void Reload(){
+		SceneManager.LoadScene ("Blocks");
 	}
 }

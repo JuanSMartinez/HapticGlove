@@ -36,9 +36,6 @@ public class FamiliarizationManager : MonoBehaviour {
 	//Array of motors
 	public GameObject[] actuators;
 
-	//Com port input
-	public InputField input;
-
 	//intensity percentage
 	private string intensity = "0.250";
 
@@ -56,21 +53,23 @@ public class FamiliarizationManager : MonoBehaviour {
 
 	// Use this for initialization
 	void Start () {
-		
+		//Connect to the glove
+		Connect();
 	}
 	
 	// Update is called once per frame
 	void Update () {
 		if (start) {
 			StateTransition ();
-			WriteData ();
+		} else {
+			serialData = "S0.100:DDDDDDDDDDE";
 		}
+		WriteData ();
 	}
 
 	//State transition handler
 	private void StateTransition(){
-
-
+		
 		//If the 3 seconds routines are not active, manage states
 		if (!routineActive) {
 			switch (currentState) {
@@ -104,12 +103,9 @@ public class FamiliarizationManager : MonoBehaviour {
 				break;
 			case S_END:
 				StopStateMachine ();
-				//SceneManager.LoadScene (SceneManager.GetActiveScene ().name);
 				break;
 			
 			}
-
-
 		}
 
 	}
@@ -117,11 +113,10 @@ public class FamiliarizationManager : MonoBehaviour {
 	//3 seconds routine to activate actuators
 	private IEnumerator OnRoutine(){
 		string baseMessage = "S" + intensity + ":" + "DDDDDDDDDDE";
-		for (int i = 0; i < 10; i++) {
-			char[] message = baseMessage.ToCharArray();
+		for (int i = 0; i < 10 && start; i++) {
+			char[] message = baseMessage.ToCharArray ();
 			message [i + 7] = 'U';
-			//WriteProtocol (new string(message));
-			serialData = new string(message);
+			serialData = new string (message);
 			ActivateActuator (i);
 			yield return new WaitForSeconds (1.5f);
 		}
@@ -129,12 +124,12 @@ public class FamiliarizationManager : MonoBehaviour {
 		DeactivateAllActuators ();
 		yield return new WaitForSeconds (1f);
 		baseMessage = "S" + intensity + ":" + "UUUUUUUUUUE";
-		//WriteProtocol (baseMessage);
 		serialData = baseMessage;
 		ActivateAllActuators ();
 		yield return new WaitForSeconds (3f);
 		routineActive = false;
 		currentState = S_OFF;
+
 	}
 
 	//3 seconds routin to deactivate motors
@@ -191,23 +186,26 @@ public class FamiliarizationManager : MonoBehaviour {
 		if (serialManager.ActiveConnection ()) {
 			start = true;
 			completedCycles = 0;
+			currentState = S1;
+			routineActive = false;
 		}
 	}
 
 	//Stop state machine
 	public void StopStateMachine(){
-
 		start = false;
-		string message = "S0.100:DDDDDDDDDDE";
-		//WriteProtocol (message);
-		serialData = message;
+		StopAllCoroutines ();
+		DeactivateAllActuators ();
+		intensity = "0.000";
+		completedCycles = 0;
+		ShowIntesity ();
 		currentState = S1;
-
+		routineActive = false;
 	}
 
 	//Connect to the glove
 	public void Connect(){
-		serialManager.portName = input.text;
+		serialManager.portName = SerialConfiguration.serialPort;
 		serialManager.Initialize ();
 		serialManager.StartConnection ();
 	}
@@ -237,6 +235,13 @@ public class FamiliarizationManager : MonoBehaviour {
 		serialManager.Write (serialData);
 		Debug.Log (serialManager.Read ());
 	}
+
+	//Load Main Menu Scene
+	public void LoadMainMenu(){
+		StopStateMachine ();
+		SceneManager.LoadScene ("MainMenu");
+	}
+		
 
 
 }

@@ -1,4 +1,4 @@
 sceneSetups:
-- path: Assets/myScenes/Familiarization.unity
+- path: Assets/myScenes/Blocks.unity
   isLoaded: 1
   isActive: 1

@@ -30,9 +30,6 @@ public class TestingHapticManager : MonoBehaviour {
 	//Serial percentage 
 	private float serialPercentage;
 
-	//Serial data
-	private string serialWriteData = "";
-
 	// Use this for initialization
 	void Start () {
 		serialPercentage = 0.5f;

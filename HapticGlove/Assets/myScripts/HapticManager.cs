@@ -32,13 +32,10 @@ public class HapticManager : MonoBehaviour {
 	//Serial data
 	private string serialWriteData = "";
 
-
-
 	// Use this for initialization
 	void Start () {
 		provider = FindObjectOfType<LeapProvider> ();
-		serialManager.Initialize ();
-		serialManager.StartConnection ();
+		Connect ();
 	}
 
 	// Update is called once per frame
@@ -51,13 +48,14 @@ public class HapticManager : MonoBehaviour {
 			//Compute haptic values for vibration and serial data
 			string serialData = GetHapticValues (bones, hand.PalmNormal.ToVector3());
 			//Send data through serial port
-			if (!serialData.Equals (serialWriteData) || GetNumberOfActiveMotors(serialData)==0) {
+			/*if (!serialData.Equals (serialWriteData) || GetNumberOfActiveMotors(serialData)==0) {
 				serialWriteData = serialData;
 				//StartCoroutine (AsynchronousDataProtocol (serialWriteData));
 				SendDataProtocol (serialWriteData);
-			}
-			//serialWriteData = serialData;
-			//serialManager.Write (serialData);
+			}*/
+			serialWriteData = serialData;
+			serialManager.Write (serialData);
+			Debug.Log (serialManager.Read ());
 			//SendDataProtocol (serialWriteData);
 
 		}
@@ -127,15 +125,16 @@ public class HapticManager : MonoBehaviour {
 		}
 
 		//Calculate average energy and friction
-		float averageEnergy = totalEnergy / 10f;
-		float averageFriction = totalFriction / 10f;
+		int n = GetNumberOfActiveMotors(controlWord);
+		float averageEnergy = totalEnergy / n;
+		float averageFriction = totalFriction / n;
 
 		//Normalize energy and friction in terms of the maximum kinetic energy and maximum weight
 		float normalizedEnergy = Mathf.Min(averageEnergy, 0.5f*maxMass*maxVelocity*maxVelocity)/ (0.5f*maxMass*maxVelocity*maxVelocity);
 		float normalizedFriction = Mathf.Min (averageFriction, maxMass * 9.8f) / (maxMass * 9.8f);
 
-		//percentage of the maximum current, has to be greater than 60%
-		float serialPercentage = Mathf.Max(( 0.5f * normalizedEnergy + 0.5f * normalizedFriction), 0.25f);
+		//percentage of the maximum current, has to be greater than 25%
+		float serialPercentage = Mathf.Max(Mathf.Min(( normalizedEnergy +normalizedFriction),1f), 0.25f);
 		//float serialPercentage = 1.0f;
 		return "S" + serialPercentage.ToString ("0.000") + ":" + controlWord+"E";
 
@@ -181,6 +180,12 @@ public class HapticManager : MonoBehaviour {
 			if (c == 'U')
 				n++;
 		return n;
+	}
+
+	private void Connect(){
+		serialManager.portName = SerialConfiguration.serialPort;
+		serialManager.Initialize ();
+		serialManager.StartConnection ();
 	}
 
 

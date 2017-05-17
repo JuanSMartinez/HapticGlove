@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using System.IO;
+using UnityEngine.SceneManagement;
 
 public class IntensityEvaluation : MonoBehaviour {
 
@@ -11,6 +12,9 @@ public class IntensityEvaluation : MonoBehaviour {
 	public const int S_ON = 2;
 	public const int S_WAIT = 3;
 	public const int S_END = 4;
+
+	// 200x300 px window will apear in the center of the screen.
+	private Rect windowRect = new Rect ((Screen.width - 200)/2, (Screen.height - 300)/2, 200, 70);
 
 	//Control variable that tells that the 3 sec routine is active
 	private bool routineActive = false;
@@ -36,8 +40,6 @@ public class IntensityEvaluation : MonoBehaviour {
 	//Array of motors
 	public GameObject[] actuators;
 
-	//Com port input
-	public InputField comPort;
 
 	//Completed runs
 	private int runs = 0;
@@ -53,11 +55,15 @@ public class IntensityEvaluation : MonoBehaviour {
 
 	//Text inputs for user information
 	public InputField nameInput;
+	public InputField surnameInput;
 	public InputField ageInput;
-	public InputField sexInput;
+	public Dropdown sexInput;
 
 	//User log 
 	public Text userLog;
+
+	//Runs log
+	public Text runsLog;
 
 	//File base path
 	private static string BASE_PATH;
@@ -68,18 +74,23 @@ public class IntensityEvaluation : MonoBehaviour {
 	//Total number of runs
 	public int totalRuns = 30;
 
+	//Error code of user data
+	private int error = 0;
+
 	// Use this for initialization
 	void Start () {
 		BASE_PATH = Application.dataPath;
-
+		//Connect to the glove
+		Connect();
 	}
 	
 	// Update is called once per frame
 	void Update () {
-		if (start) {
+		if (start) 
 			StateTransition ();
-			WriteData ();
-		}
+		else 
+			serialData = "S0.100:DDDDDDDDDDE";
+		WriteData ();
 	}
 
 	//Manage state machine
@@ -124,6 +135,7 @@ public class IntensityEvaluation : MonoBehaviour {
 
 	//Answer feedback coroutine
 	private IEnumerator Feedback(string userAnswer){
+		runsLog.text = "Intentos: " + runs + "/30";
 		userLog.text = "Respuesta: " + userAnswer + ". Respuesta Correcta: " + float.Parse (intensity) * 100 + "%";
 		yield return new WaitForSeconds (3f);
 		userLog.text = "Respuesta:";
@@ -201,26 +213,31 @@ public class IntensityEvaluation : MonoBehaviour {
 	//Starts the evaluation
 	public void StartEvaluation(){
 		string name = nameInput.text;
+		string surname = surnameInput.text;
 		string age = ageInput.text;
-		string sex = sexInput.text;
+		string sex = sexInput.options[sexInput.value].text;
 
-		bool dataOk = !name.Equals("") && !age.Equals("") && !sex.Equals("");
+		bool dataOk = !name.Equals("") && !age.Equals("") && !sex.Equals("") && !surname.Equals("");
 
 		if (dataOk) {
+			string fullname = (name + " " + surname).Replace(" ", "%");
 			//Create a new file
-			if (File.Exists (BASE_PATH + "_" + name + ".txt"))
-				File.Delete (BASE_PATH + "_" + name + ".txt");
-			writer = File.CreateText(BASE_PATH + "_" + "_" + name + ".txt");
-			writer.WriteLine (name + "," + age + "," + sex);
+			if (File.Exists (BASE_PATH + "_" + fullname + ".txt"))
+				File.Delete (BASE_PATH + "_" + fullname + ".txt");
+			writer = File.CreateText (BASE_PATH + "_" + "_" + fullname + ".txt");
+			writer.WriteLine (fullname + "," + age + "," + sex);
 			writer.WriteLine ("Run,User Answer,Correct Answer");
 			currentState = S1;
 			start = true;
-		}
+			error = 0;
+		} else
+			error = 1;
+		
 
 	}
 	//Connect to the glove
 	public void Connect(){
-		serialManager.portName = comPort.text;
+		serialManager.portName = SerialConfiguration.serialPort;
 		serialManager.Initialize ();
 		serialManager.StartConnection ();
 	}
@@ -229,12 +246,38 @@ public class IntensityEvaluation : MonoBehaviour {
 	//Close the file
 	public void Close(){
 		if (writer != null) {
+			StopAllCoroutines ();
 			userLog.text = "Prueba Terminada";
 			writer.Close ();
 			writer = null;
 			start = false;
 			runs = 0;
+			runsLog.text = "Intentos:";
+			currentState = S1;
 		}
+	}
+
+	//Load Main Menu
+	public void LoadMainMenu(){
+		Close ();
+		SceneManager.LoadScene ("MainMenu");
+	}
+
+	void OnGUI(){
+		if(error == 1)
+			windowRect = GUI.Window (0, windowRect, DialogWindow, "Haptic Glove");
+	}
+
+	void DialogWindow (int windowID)
+	{
+		float y = 20;
+		GUI.Label(new Rect(5,y, windowRect.width, 20), "Datos incompletos");
+
+		if(GUI.Button(new Rect(5,y+20, windowRect.width - 10, 20), "Ok"))
+		{
+			error = 0;
+		}
+			
 	}
 
 }
