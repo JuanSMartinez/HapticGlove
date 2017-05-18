@@ -1,5 +1,0 @@
-x,x,x
-Run,User Answer,Correct Answer
-1,0.750,0.750
-2,1.000,1.000
-3,1.000,0.750

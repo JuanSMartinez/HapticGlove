@@ -1,2 +1,0 @@
-r%r,r,H
-Run,User Answer,Correct Answer
