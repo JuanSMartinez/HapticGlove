@@ -15,7 +15,7 @@ public class BlocksGameManager : MonoBehaviour {
 	public int gameScore = 0;
 
 	//Total time in seconds
-	public float totalTime = 90f;
+	public float totalTime = 180f;
 
 	//Score log
 	public Text scoreLog;
@@ -145,7 +145,7 @@ public class BlocksGameManager : MonoBehaviour {
 	//Start a game
 	public void GameStart(){
 		gameOn = true;
-		totalTime = 90f;
+		totalTime = 180f;
 		gameScore = 0;
 		stateLog.text = "START!!";
 	}
