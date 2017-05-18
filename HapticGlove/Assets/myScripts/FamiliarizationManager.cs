@@ -112,6 +112,7 @@ public class FamiliarizationManager : MonoBehaviour {
 
 	//3 seconds routine to activate actuators
 	private IEnumerator OnRoutine(){
+		/*
 		string baseMessage = "S" + intensity + ":" + "DDDDDDDDDDE";
 		for (int i = 0; i < 10 && start; i++) {
 			char[] message = baseMessage.ToCharArray ();
@@ -122,8 +123,8 @@ public class FamiliarizationManager : MonoBehaviour {
 		}
 		serialData = "S0.100:DDDDDDDDDDE";
 		DeactivateAllActuators ();
-		yield return new WaitForSeconds (1f);
-		baseMessage = "S" + intensity + ":" + "UUUUUUUUUUE";
+		yield return new WaitForSeconds (1f);*/
+		string baseMessage = "S" + intensity + ":" + "UUUUUUUUUUE";
 		serialData = baseMessage;
 		ActivateAllActuators ();
 		yield return new WaitForSeconds (3f);
