@@ -188,6 +188,11 @@ public class HapticManager : MonoBehaviour {
 		serialManager.StartConnection ();
 	}
 
+	void OnDestroy(){
+		serialManager.Write ("S0.100:DDDDDDDDDDE");
+		Debug.Log (serialManager.Read ());
+	}
+
 
 
 

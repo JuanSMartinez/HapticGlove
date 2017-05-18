@@ -19,10 +19,13 @@ public class Block : MonoBehaviour {
 	
 	// Update is called once per frame
 	void Update () {
-		
+			
 	}
 
 	public int GetObjectType(){
 		return objectType;
 	}
+
+
+
 }
