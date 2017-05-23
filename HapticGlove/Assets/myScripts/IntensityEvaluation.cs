@@ -54,8 +54,6 @@ public class IntensityEvaluation : MonoBehaviour {
 	private string intensity = "0.250";
 
 	//Text inputs for user information
-	public InputField nameInput;
-	public InputField surnameInput;
 	public InputField ageInput;
 	public Dropdown sexInput;
 
@@ -212,8 +210,8 @@ public class IntensityEvaluation : MonoBehaviour {
 
 	//Starts the evaluation
 	public void StartEvaluation(){
-		string name = nameInput.text;
-		string surname = surnameInput.text;
+		string name = "NA";
+		string surname = "NA";
 		string age = ageInput.text;
 		string sex = sexInput.options[sexInput.value].text;
 

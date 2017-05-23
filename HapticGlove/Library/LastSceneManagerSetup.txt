@@ -1,4 +1,4 @@
 sceneSetups:
-- path: Assets/myScenes/Blocks.unity
+- path: Assets/myScenes/IntensityPerception.unity
   isLoaded: 1
   isActive: 1
