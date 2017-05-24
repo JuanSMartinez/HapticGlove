@@ -5,6 +5,10 @@ import seaborn as sns
 
 percentages = np.array([0.25,0.5,0.75,1])
 
+#Male culumative accuracies matrix
+mCAm = np.matrix([])
+#FEmale culumative accuracies matrix
+
 def main():
     global percentages
     parseTextFiles()
@@ -18,7 +22,6 @@ def parseTextFiles():
         f.close()
 
 def processFile(data = []):
-
     percentagesCorrect = np.array([0.0,0.0,0.0,0.0])
     percentageCount = np.array([0,0,0,0])
     info = data[0].split(',')
