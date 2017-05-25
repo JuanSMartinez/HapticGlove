@@ -65,13 +65,14 @@ def analyze():
     plot_full_statistics(show=False)
 
     #Statistics
-    female_accuracy_avg = np.mean(FCAM[:, FCAM.shape[1]-1].flatten())
-    female_accuracy_avg_one_level = np.mean(FCOAM[:, FCOAM.shape[1]-1].flatten())
-    male_accuracy_avg = np.mean(MCAM[:, MCAM.shape[1]-1].flatten())
-    male_accuracy_avg_one_level = np.mean(MCOAM[:, MCOAM.shape[1]-1].flatten())
-    total_accuracy_avg = np.mean(FULLCAM[:, FULLCAM.shape[1]-1].flatten())
-    total_accuracy_avg_one_level = np.mean(FULLCOAM[:, FULLCOAM.shape[1]-1].flatten())
-
+    female_accuracy_avg = np.mean(FCAM[:, FCAM.shape[1]-1].flatten(), dtype=np.float32)
+    female_accuracy_avg_one_level = np.mean(FCOAM[:, FCOAM.shape[1]-1].flatten(), dtype=np.float32)
+    male_accuracy_avg = np.mean(MCAM[:, MCAM.shape[1]-1].flatten(), dtype=np.float32)
+    male_accuracy_avg_one_level = np.mean(MCOAM[:, MCOAM.shape[1]-1].flatten(), dtype=np.float32)
+    total_accuracy_avg = np.mean(FULLCAM[:, FULLCAM.shape[1]-1].flatten(), dtype=np.float32)
+    total_accuracy_avg_one_level = np.mean(FULLCOAM[:, FULLCOAM.shape[1]-1].flatten(), dtype=np.float32)
+    percentage_accuracies_avg = np.mean(PACCM, axis=0, dtype=np.float32)
+    
     #File writing
     out = open(FILE_NAME, 'w')
     out.write("Average female accuracy : " + str(female_accuracy_avg) + "%\n")
@@ -80,6 +81,10 @@ def analyze():
     out.write("Average male accuracy by one level : " + str(male_accuracy_avg_one_level) + "%\n")
     out.write("Total average accuracy : " + str(total_accuracy_avg) + "%\n")
     out.write("Total average accuracy by one level : " + str(total_accuracy_avg_one_level) + "%\n")
+    out.write("25% level average accuracy : " + str(percentage_accuracies_avg[0]) + "%\n")
+    out.write("50% level average accuracy : " + str(percentage_accuracies_avg[1]) + "%\n")
+    out.write("75% level average accuracy : " + str(percentage_accuracies_avg[2]) + "%\n")
+    out.write("100% level average accuracy : " + str(percentage_accuracies_avg[3]) + "%\n")
     out.close()
 
 
