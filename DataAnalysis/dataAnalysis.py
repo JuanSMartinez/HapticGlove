@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 '''
 Data analysis script
 '''
@@ -28,6 +30,15 @@ FULLCOAM = np.array([])
 #Percentage accuracies
 PACCM = np.array([])
 
+#String titles and labels for graphs
+ACC_ONE_LEVEL_TITLE = "Porcentaje Acumulado de Aciertos\ndentro de un Nivel de Diferencia"
+ACC_TITLE = "Porcentaje Acumulado de Aciertos"
+Y_LABEL = "Porcentaje de Aciertos (%)"
+X_LABEL = "Intento"
+
+#Name of file with total statistics
+FILE_NAME = "averages.dat"
+
 def main():
     '''Main method'''
     parse_text_files()
@@ -47,79 +58,88 @@ def parse_text_files():
 
 def analyze():
     '''Analyze and plot all the data'''
-    plot_m_accuracies()
+    global ACC_ONE_LEVEL_TITLE, ACC_TITLE, Y_LABEL, X_LABEL, FILE_NAME
+    #Plots
+    plot_f_statistics(show=False)
+    plot_m_statistics(show=False)
+    plot_full_statistics(show=False)
 
-def plot_full_accuracies_one_level():
-    '''Plot all the cumulative accuracies by one level'''
-    rows, columns = FULLCOAM.shape
-    x_vector = np.array([x+1 for x in range(columns)])
-    plt.figure()
-    for i in range(rows):
-        plt.plot(x_vector, FULLCOAM[i, 0:columns])
-    plt.title("Porcentaje Acumulado de Aciertos Dentro de un Nivel de Diferencia")
-    plt.ylabel("Porcentaje de Aciertos (%)")
-    plt.xlabel("Intento")
-    plt.show()
+    #Statistics
+    female_accuracy_avg = np.mean(FCAM[:, FCAM.shape[1]-1].flatten())
+    female_accuracy_avg_one_level = np.mean(FCOAM[:, FCOAM.shape[1]-1].flatten())
+    male_accuracy_avg = np.mean(MCAM[:, MCAM.shape[1]-1].flatten())
+    male_accuracy_avg_one_level = np.mean(MCOAM[:, MCOAM.shape[1]-1].flatten())
+    total_accuracy_avg = np.mean(FULLCAM[:, FULLCAM.shape[1]-1].flatten())
+    total_accuracy_avg_one_level = np.mean(FULLCOAM[:, FULLCOAM.shape[1]-1].flatten())
 
-def plot_full_accuracies():
-    '''Plot all the cumulative accuracies'''
-    rows, columns = FULLCAM.shape
-    x_vector = np.array([x+1 for x in range(columns)])
-    plt.figure()
-    for i in range(rows):
-        plt.plot(x_vector, FULLCAM[i, 0:columns])
-    plt.title("Porcentaje Acumulado de Aciertos")
-    plt.ylabel("Porcentaje de Aciertos (%)")
-    plt.xlabel("Intento")
-    plt.show()
+    #File writing
+    out = open(FILE_NAME, 'w')
+    out.write("Average female accuracy : " + str(female_accuracy_avg) + "%\n")
+    out.write("Average female accuracy by one level : " + str(female_accuracy_avg_one_level) + "%\n")
+    out.write("Average male accuracy : " + str(male_accuracy_avg) + "%\n")
+    out.write("Average male accuracy by one level : " + str(male_accuracy_avg_one_level) + "%\n")
+    out.write("Total average accuracy : " + str(total_accuracy_avg) + "%\n")
+    out.write("Total average accuracy by one level : " + str(total_accuracy_avg_one_level) + "%\n")
+    out.close()
 
-def plot_m_accuracies_one_level():
-    '''Plot all the cumulative male accuracies by one level'''
-    rows, columns = MCOAM.shape
-    x_vector = np.array([x+1 for x in range(columns)])
-    plt.figure()
-    for i in range(rows):
-        plt.plot(x_vector, MCOAM[i, 0:columns])
-    plt.title("Porcentaje Acumulado de Aciertos en Hombres Dentro de un Nivel de Diferencia")
-    plt.ylabel("Porcentaje de Aciertos (%)")
-    plt.xlabel("Intento")
-    plt.show()
 
-def plot_f_accuracies_one_level():
-    '''Plot all the cumulative female accuracies by one level'''
-    rows, columns = FCOAM.shape
-    x_vector = np.array([x+1 for x in range(columns)])
-    plt.figure()
-    for i in range(rows):
-        plt.plot(x_vector, FCOAM[i, 0:columns])
-    plt.title("Porcentaje Acumulado de Aciertos en Mujeres Dentro de un Nivel de Diferencia")
-    plt.ylabel("Porcentaje de Aciertos (%)")
-    plt.xlabel("Intento")
-    plt.show()
+def plot_full_statistics(show=True):
+    '''Plot the full statistics'''
+    plt.figure(figsize=(14.3, 7.7))
+    plt.subplot(121)
+    plot_matrix(FULLCAM, Y_LABEL, X_LABEL, ACC_TITLE)
+    plt.subplot(122)
+    plot_matrix(FULLCOAM, Y_LABEL, X_LABEL, ACC_ONE_LEVEL_TITLE)
+    plt.suptitle(u"Estadísticas Totales", fontsize=18)
+    plt.tight_layout()
+    plt.subplots_adjust(top=0.86)
+    if show:
+        plt.show()
+    else:
+        plt.savefig("full.eps")
 
-def plot_m_accuracies():
-    '''Plot all the cumulative male accuracies'''
-    rows, columns = MCAM.shape
-    x_vector = np.array([x+1 for x in range(columns)])
-    plt.figure()
-    for i in range(rows):
-        plt.plot(x_vector, MCAM[i, 0:columns])
-    plt.title("Porcentaje Acumulado de Aciertos en Hombres")
-    plt.ylabel("Porcentaje de Aciertos (%)")
-    plt.xlabel("Intento")
-    plt.show()
+def plot_f_statistics(show=True):
+    '''Plot the female statistics'''
+    plt.figure(figsize=(14.3, 7.7))
+    plt.subplot(121)
+    plot_matrix(FCAM, Y_LABEL, X_LABEL, ACC_TITLE)
+    plt.subplot(122)
+    plot_matrix(FCOAM, Y_LABEL, X_LABEL, ACC_ONE_LEVEL_TITLE)
+    plt.suptitle(u"Estadísticas de Mujeres", fontsize=18)
+    plt.tight_layout()
+    plt.subplots_adjust(top=0.86)
+    if show:
+        plt.show()
+    else:
+        plt.savefig("female.eps")
 
-def plot_f_accuracies():
-    '''Plot all the cumulative female accuracies'''
-    rows, columns = FCAM.shape
+def plot_m_statistics(show=True):
+    '''Plot the male statistics'''
+    plt.figure(figsize=(14.3, 7.7))
+    plt.subplot(121)
+    plot_matrix(MCAM, Y_LABEL, X_LABEL, ACC_TITLE)
+    plt.subplot(122)
+    plot_matrix(MCOAM, Y_LABEL, X_LABEL, ACC_ONE_LEVEL_TITLE)
+    plt.suptitle(u"Estadísticas de Hombres", fontsize=18)
+    plt.tight_layout()
+    plt.subplots_adjust(top=0.86)
+    if show:
+        plt.show()
+    else:
+        plt.savefig("male.eps")
+
+def plot_matrix(matrix, y_label, x_label, title):
+    '''Plot rows of a given matrix'''
+    rows, columns = matrix.shape
     x_vector = np.array([x+1 for x in range(columns)])
-    plt.figure()
     for i in range(rows):
-        plt.plot(x_vector, FCAM[i, 0:columns])
-    plt.title("Porcentaje Acumulado de Aciertos en Mujeres")
-    plt.ylabel("Porcentaje de Aciertos (%)")
-    plt.xlabel("Intento")
-    plt.show()
+        plt.plot(x_vector, matrix[i, 0:columns])
+    plt.title(title, fontsize=12)
+    plt.ylabel(y_label, fontsize=12)
+    plt.xlabel(x_label, fontsize=12)
+    plt.tick_params(axis='both', which='major', labelsize=12)
+    plt.tick_params(axis='both', which='minor', labelsize=12)
+    plt.grid(True)
 
 def append_matrices():
     '''Append female and male matrices to get total statistics'''
@@ -185,7 +205,7 @@ def process_file(data=None):
         if correct_answer == user_answer:
             correct += 1
             percentages_correct[percentage_index] += 1
-        if abs(user_answer - correct_answer) <= 0.25:
+        if abs(user_answer - correct_answer) == 0.25:
             correct_by_one_level += 1
         cumulative_acc = np.append(cumulative_acc, correct/(i+1))
         cumulative_one_level_acc = np.append(cumulative_one_level_acc, correct_by_one_level/(i+1))
