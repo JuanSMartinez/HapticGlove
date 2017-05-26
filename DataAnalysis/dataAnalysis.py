@@ -60,9 +60,10 @@ def analyze():
     '''Analyze and plot all the data'''
     global ACC_ONE_LEVEL_TITLE, ACC_TITLE, Y_LABEL, X_LABEL, FILE_NAME
     #Plots
-    plot_f_statistics(show=False)
-    plot_m_statistics(show=False)
-    plot_full_statistics(show=False)
+    #plot_f_statistics(show=False)
+    #plot_m_statistics(show=False)
+    #plot_full_statistics(show=False)
+    plot_full_statistics_s(show=False)
 
     #Statistics
     female_accuracy_avg = np.mean(FCAM[:, FCAM.shape[1]-1].flatten(), dtype=np.float32)
@@ -72,7 +73,7 @@ def analyze():
     total_accuracy_avg = np.mean(FULLCAM[:, FULLCAM.shape[1]-1].flatten(), dtype=np.float32)
     total_accuracy_avg_one_level = np.mean(FULLCOAM[:, FULLCOAM.shape[1]-1].flatten(), dtype=np.float32)
     percentage_accuracies_avg = np.mean(PACCM, axis=0, dtype=np.float32)
-    
+
     #File writing
     out = open(FILE_NAME, 'w')
     out.write("Average female accuracy : " + str(female_accuracy_avg) + "%\n")
@@ -87,6 +88,24 @@ def analyze():
     out.write("100% level average accuracy : " + str(percentage_accuracies_avg[3]) + "%\n")
     out.close()
 
+
+def plot_full_statistics_s(show=True):
+    '''Plot separate full statistics'''
+    plt.figure(figsize=(14.3, 7.7))
+    plot_matrix(FULLCAM, Y_LABEL, X_LABEL, ACC_TITLE)
+    plt.tight_layout()
+    if show:
+        plt.show()
+    else:
+        plt.savefig("full_acc.eps")
+
+    plt.figure(figsize=(14.3, 7.7))
+    plot_matrix(FULLCOAM, Y_LABEL, X_LABEL, ACC_ONE_LEVEL_TITLE)
+    plt.tight_layout()
+    if show:
+        plt.show()
+    else:
+        plt.savefig("full_acc_one.eps")
 
 def plot_full_statistics(show=True):
     '''Plot the full statistics'''
@@ -139,11 +158,11 @@ def plot_matrix(matrix, y_label, x_label, title):
     x_vector = np.array([x+1 for x in range(columns)])
     for i in range(rows):
         plt.plot(x_vector, matrix[i, 0:columns])
-    plt.title(title, fontsize=12)
-    plt.ylabel(y_label, fontsize=12)
-    plt.xlabel(x_label, fontsize=12)
-    plt.tick_params(axis='both', which='major', labelsize=12)
-    plt.tick_params(axis='both', which='minor', labelsize=12)
+    plt.title(title, fontsize=24)
+    plt.ylabel(y_label, fontsize=24)
+    plt.xlabel(x_label, fontsize=24)
+    plt.tick_params(axis='both', which='major', labelsize=24)
+    plt.tick_params(axis='both', which='minor', labelsize=24)
     plt.grid(True)
 
 def append_matrices():
