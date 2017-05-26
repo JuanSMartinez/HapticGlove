@@ -92,7 +92,7 @@ def analyze():
 def plot_full_statistics_s(show=True):
     '''Plot separate full statistics'''
     plt.figure(figsize=(14.3, 7.7))
-    plot_matrix(FULLCAM, Y_LABEL, X_LABEL, ACC_TITLE)
+    plot_matrix(FULLCAM, Y_LABEL, X_LABEL, "")
     plt.tight_layout()
     if show:
         plt.show()
@@ -100,7 +100,7 @@ def plot_full_statistics_s(show=True):
         plt.savefig("full_acc.eps")
 
     plt.figure(figsize=(14.3, 7.7))
-    plot_matrix(FULLCOAM, Y_LABEL, X_LABEL, ACC_ONE_LEVEL_TITLE)
+    plot_matrix(FULLCOAM, Y_LABEL, X_LABEL, "")
     plt.tight_layout()
     if show:
         plt.show()
