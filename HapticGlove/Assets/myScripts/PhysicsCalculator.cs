@@ -10,7 +10,8 @@ namespace AssemblyCSharp
 		}
 
 		public static float GetKineticEnergyOfCollision(Rigidbody hapticPoint, Rigidbody collisionObj){
-			return 0.5f * (hapticPoint.mass * Mathf.Pow (Vector3.Magnitude(hapticPoint.velocity), 2) + collisionObj.mass * Mathf.Pow (Vector3.Magnitude(collisionObj.velocity), 2));
+			return 0.5f * (hapticPoint.mass * 
+			Mathf.Pow (Vector3.Magnitude(hapticPoint.velocity), 2) + collisionObj.mass * Mathf.Pow (Vector3.Magnitude(collisionObj.velocity), 2));
 		}
 
 		public static float GetFrictionForceOfCollision(Vector3 normalPoint, Rigidbody collisionObj, PhysicMaterial materialObj){

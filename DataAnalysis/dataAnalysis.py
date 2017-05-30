@@ -17,15 +17,23 @@ MCAM = np.array([])
 #Male cumulative accuracies by one level matrix
 MCOAM = np.array([])
 
+#Male cumulative accuracies with at most one level
+MCWOAM = np.array([])
+
 #Female cumulative accuracies matrix
 FCAM = np.array([])
 
 #Female cumulative accuracies by one level matrix
 FCOAM = np.array([])
 
+#Female cumulative accuracies with at most one level
+FCWOAM = np.array([])
+
+
 #Full matrices
 FULLCAM = np.array([])
 FULLCOAM = np.array([])
+FULLCO = np.array([])
 
 #Percentage accuracies
 PACCM = np.array([])
@@ -52,8 +60,8 @@ def parse_text_files():
         text_file = open(name, 'r')
         data = text_file.read().split('\n')
         gender, age = get_gender_age(data)
-        cumulative_acc, cumulative_one_level_acc, acc_by_percentage = process_file(data)
-        append_matrices_gender(gender, cumulative_acc, cumulative_one_level_acc, acc_by_percentage)
+        cumulative_acc, cumulative_one_level_acc, acc_by_percentage, cumulative_with_one_level = process_file(data)
+        append_matrices_gender(gender, cumulative_acc, cumulative_one_level_acc, acc_by_percentage, cumulative_with_one_level)
         text_file.close()
 
 def analyze():
@@ -68,20 +76,26 @@ def analyze():
     #Statistics
     female_accuracy_avg = np.mean(FCAM[:, FCAM.shape[1]-1].flatten(), dtype=np.float32)
     female_accuracy_avg_one_level = np.mean(FCOAM[:, FCOAM.shape[1]-1].flatten(), dtype=np.float32)
+    female_accuracy_avg_with_one_level = np.mean(FCWOAM[:, FCWOAM.shape[1]-1].flatten(), dtype=np.float32)
     male_accuracy_avg = np.mean(MCAM[:, MCAM.shape[1]-1].flatten(), dtype=np.float32)
     male_accuracy_avg_one_level = np.mean(MCOAM[:, MCOAM.shape[1]-1].flatten(), dtype=np.float32)
+    male_accuracy_avg_with_one_level = np.mean(MCWOAM[:, MCWOAM.shape[1]-1].flatten(), dtype=np.float32)
     total_accuracy_avg = np.mean(FULLCAM[:, FULLCAM.shape[1]-1].flatten(), dtype=np.float32)
     total_accuracy_avg_one_level = np.mean(FULLCOAM[:, FULLCOAM.shape[1]-1].flatten(), dtype=np.float32)
+    total_accuracy_avg_with_one_level = np.mean(FULLCO[:, FULLCO.shape[1]-1].flatten(), dtype=np.float32)
     percentage_accuracies_avg = np.mean(PACCM, axis=0, dtype=np.float32)
 
     #File writing
     out = open(FILE_NAME, 'w')
     out.write("Average female accuracy : " + str(female_accuracy_avg) + "%\n")
     out.write("Average female accuracy by one level : " + str(female_accuracy_avg_one_level) + "%\n")
+    out.write("Average female accuracy with at most one level : " + str(female_accuracy_avg_with_one_level) + "%\n")
     out.write("Average male accuracy : " + str(male_accuracy_avg) + "%\n")
     out.write("Average male accuracy by one level : " + str(male_accuracy_avg_one_level) + "%\n")
+    out.write("Average male accuracy with at most one level : " + str(male_accuracy_avg_with_one_level) + "%\n")
     out.write("Total average accuracy : " + str(total_accuracy_avg) + "%\n")
     out.write("Total average accuracy by one level : " + str(total_accuracy_avg_one_level) + "%\n")
+    out.write("Total average accuracy with at most one level: " + str(total_accuracy_avg_with_one_level) + "%\n")
     out.write("25% level average accuracy : " + str(percentage_accuracies_avg[0]) + "%\n")
     out.write("50% level average accuracy : " + str(percentage_accuracies_avg[1]) + "%\n")
     out.write("75% level average accuracy : " + str(percentage_accuracies_avg[2]) + "%\n")
@@ -100,12 +114,20 @@ def plot_full_statistics_s(show=True):
         plt.savefig("full_acc.eps")
 
     plt.figure(figsize=(14.3, 7.7))
-    plot_matrix(FULLCOAM, Y_LABEL, X_LABEL, "")
+    plot_matrix(FULLCOAM, Y_LABEL, X_LABEL, "",  legend_location="upper right")
     plt.tight_layout()
     if show:
         plt.show()
     else:
         plt.savefig("full_acc_one.eps")
+
+    plt.figure(figsize=(14.3, 7.7))
+    plot_matrix(FULLCO, Y_LABEL, X_LABEL, "",  legend_location="center right")
+    plt.tight_layout()
+    if show:
+        plt.show()
+    else:
+        plt.savefig("full_acc_with_one.eps")
 
 def plot_full_statistics(show=True):
     '''Plot the full statistics'''
@@ -152,12 +174,16 @@ def plot_m_statistics(show=True):
     else:
         plt.savefig("male.eps")
 
-def plot_matrix(matrix, y_label, x_label, title):
+def plot_matrix(matrix, y_label, x_label, title, legend_location="lower right"):
     '''Plot rows of a given matrix'''
     rows, columns = matrix.shape
     x_vector = np.array([x+1 for x in range(columns)])
     for i in range(rows):
-        plt.plot(x_vector, matrix[i, 0:columns])
+        plt.plot(x_vector, matrix[i, 0:columns], label="Usuario " + str(i+1))
+    legend = plt.legend(loc=legend_location, shadow=True)
+    # Set the fontsize
+    for label in legend.get_texts():
+        label.set_fontsize('large')
     plt.title(title, fontsize=24)
     plt.ylabel(y_label, fontsize=24)
     plt.xlabel(x_label, fontsize=24)
@@ -167,15 +193,17 @@ def plot_matrix(matrix, y_label, x_label, title):
 
 def append_matrices():
     '''Append female and male matrices to get total statistics'''
-    global FULLCAM, FULLCOAM
+    global FULLCAM, FULLCOAM, FULLCO
     if len(MCAM) > 0 and len(FCAM) > 0:
         FULLCAM = np.vstack([FCAM, MCAM])
     if len(MCOAM) > 0 and len(FCOAM) > 0:
         FULLCOAM = np.vstack([FCOAM, MCOAM])
+    if len(MCWOAM) > 0 and len(FCWOAM) > 0:
+        FULLCO = np.vstack([MCWOAM, FCWOAM])
 
-def append_matrices_gender(gender="NA", cumulative_acc=None, cumulative_one_level_acc=None, acc_by_percentage=None):
+def append_matrices_gender(gender="NA", cumulative_acc=None, cumulative_one_level_acc=None, acc_by_percentage=None, cumulative_with_one_level=None):
     '''Append the row vector data to the corresponding matrices'''
-    global FCAM, MCAM, FCOAM, MCOAM, PACCM
+    global FCAM, MCAM, FCOAM, MCOAM, PACCM, MCWOAM, FCWOAM
     if gender.strip() == 'M':
         if len(FCAM) == 0:
             FCAM = cumulative_acc
@@ -185,6 +213,10 @@ def append_matrices_gender(gender="NA", cumulative_acc=None, cumulative_one_leve
             FCOAM = cumulative_one_level_acc
         else:
             FCOAM = np.vstack([FCOAM, cumulative_one_level_acc])
+        if len(FCWOAM) == 0:
+            FCWOAM = cumulative_with_one_level
+        else:
+            FCWOAM = np.vstack([FCWOAM, cumulative_with_one_level])
     elif gender.strip() == 'H':
         if len(MCAM) == 0:
             MCAM = cumulative_acc
@@ -194,6 +226,10 @@ def append_matrices_gender(gender="NA", cumulative_acc=None, cumulative_one_leve
             MCOAM = cumulative_one_level_acc
         else:
             MCOAM = np.vstack([MCOAM, cumulative_one_level_acc])
+        if len(MCWOAM) == 0:
+            MCWOAM = cumulative_with_one_level
+        else:
+            MCWOAM = np.vstack([MCWOAM, cumulative_with_one_level])
     if len(PACCM) == 0:
         PACCM = acc_by_percentage
     else:
@@ -216,9 +252,11 @@ def process_file(data=None):
     percentage_count = np.array([0, 0, 0, 0])
     cumulative_acc = np.array([])
     cumulative_one_level_acc = np.array([])
+    cumulative_with_one_level = np.array([])
     clean_data = data[2:len(data)-1]
     correct = 0.0
     correct_by_one_level = 0.0
+    c = 0.0
     for i, entry in enumerate(clean_data):
         values = entry.split(',')
         user_answer = float(values[1])
@@ -228,13 +266,16 @@ def process_file(data=None):
         percentage_count[percentage_index] += 1
         if correct_answer == user_answer:
             correct += 1
+            c+=1
             percentages_correct[percentage_index] += 1
         if abs(user_answer - correct_answer) == 0.25:
             correct_by_one_level += 1
+            c+=1
         cumulative_acc = np.append(cumulative_acc, correct/(i+1))
         cumulative_one_level_acc = np.append(cumulative_one_level_acc, correct_by_one_level/(i+1))
+        cumulative_with_one_level = np.append(cumulative_with_one_level, (c)/(i+1))
     acc_by_percentage = np.divide(percentages_correct, percentage_count)
-    return cumulative_acc*100, cumulative_one_level_acc*100, acc_by_percentage*100
+    return cumulative_acc*100, cumulative_one_level_acc*100, acc_by_percentage*100, cumulative_with_one_level*100
 
 
 if __name__ == "__main__":
